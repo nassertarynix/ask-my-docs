@@ -98,6 +98,8 @@ The web stream sends one JSON object per line: `{"type":"sources"}` first, then 
 - **Tests must pass without Ollama or network.** Mock `retrieve`, `stream_answer`, `embed` and
   the OpenAI client (see `tests/test_web.py`, `tests/test_evaluate.py`). Add a test for every
   behaviour change.
+- CI (`.github/workflows/tests.yml`) runs `pytest` on Python 3.10 to 3.13 for every push and pull
+  request, with read-only permissions and no secrets. Keep the tests offline so it stays that way.
 - Never commit `index/`, `.env`, API keys, or downloaded model files (see `.gitignore`).
 - Commit messages: imperative summary, then a short explanation of *why*. Push to `main`.
 - README claims must be backed by something reproducible. Prefer `evaluate` output over

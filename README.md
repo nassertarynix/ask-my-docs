@@ -1,5 +1,7 @@
 # Ask My Docs
 
+[![tests](https://github.com/nassertarynix/ask-my-docs/actions/workflows/tests.yml/badge.svg)](https://github.com/nassertarynix/ask-my-docs/actions/workflows/tests.yml)
+
 A small, local **retrieval-augmented generation (RAG)** tool. Point it at a folder of
 notes, ask questions in plain language, and get an answer grounded in your documents,
 with the passages it used shown as sources. Everything runs on your machine with
