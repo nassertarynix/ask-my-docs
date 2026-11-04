@@ -161,12 +161,21 @@ const els = {
   result: $("#result"), answer: $("#answer"), sourcesPanel: $("#sources-panel"),
   sources: $("#sources"), steps: $("#steps"),
 };
-const EXAMPLES = [
-  "How many days can I work remotely each week?",
-  "How quickly must I report a lost laptop, and who do I tell?",
-  "How much is the learning budget?",
-  "What is the CEO's favorite color?",
-];
+// Example questions for the bundled demo corpora, keyed by a file that identifies each one.
+const EXAMPLE_SETS = {
+  "project_jobly.md": [
+    "What does Al-Nasser do at Tarynix?",
+    "Which state management does Jobly use?",
+    "What was his role in Tayar Shop?",
+    "Does Al-Nasser know Rust?",
+  ],
+  "remote_work.md": [
+    "How many days can I work remotely each week?",
+    "How quickly must I report a lost laptop, and who do I tell?",
+    "How much is the learning budget?",
+    "What is the CEO's favorite color?",
+  ],
+};
 let answerText = "";
 
 function setStep(active) {
@@ -321,9 +330,10 @@ async function loadStatus() {
       return;
     }
     els.status.textContent = info.chunks + " chunks · " + info.documents.length + " files · " + info.chat_model;
-    if (info.documents.includes("remote_work.md")) {
+    const key = Object.keys(EXAMPLE_SETS).find((file) => info.documents.includes(file));
+    if (key) {
       els.chips.hidden = false;
-      EXAMPLES.forEach((text) => {
+      EXAMPLE_SETS[key].forEach((text) => {
         const chip = Object.assign(document.createElement("button"), { type: "button", className: "chip", textContent: text });
         chip.addEventListener("click", () => { els.question.value = text; els.form.requestSubmit(); });
         els.chips.append(chip);

@@ -17,9 +17,12 @@ SYSTEM_PROMPT = (
 
 
 def build_messages(question: str, hits: list[Hit]) -> list[dict[str, str]]:
+    def label(hit: Hit) -> str:
+        chunk = hit.chunk
+        return f"{chunk.title}; source: {chunk.source}" if chunk.title else f"source: {chunk.source}"
+
     context = "\n\n".join(
-        f"[{n}] (source: {hit.chunk.source})\n{hit.chunk.text}"
-        for n, hit in enumerate(hits, start=1)
+        f"[{n}] ({label(hit)})\n{hit.chunk.text}" for n, hit in enumerate(hits, start=1)
     )
     user = f"Context passages:\n\n{context}\n\nQuestion: {question}"
     return [

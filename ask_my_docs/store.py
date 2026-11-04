@@ -12,6 +12,16 @@ class Chunk:
     text: str
     source: str  # file the chunk came from, relative to the ingested folder
     index: int  # position of the chunk within that file
+    title: str = ""  # the document's title (its first "# " heading), if any
+
+    @property
+    def embedding_text(self) -> str:
+        """Text sent to the embedding model: the chunk with its document title.
+
+        A chunk from the middle of a long document may never mention what the
+        document is about; the title restores that context for search.
+        """
+        return f"{self.title}\n\n{self.text}" if self.title else self.text
 
 
 @dataclass

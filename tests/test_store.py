@@ -48,3 +48,20 @@ def test_prompt_numbers_passages_and_includes_question():
     assert "[1] (source: a.md)" in user and "first text" in user
     assert "[2] (source: b.md)" in user
     assert user.endswith("Question: What is up?")
+
+
+def test_embedding_text_includes_the_document_title():
+    chunk = Chunk("Admins can ban users.", "jobly.md", 3, title="Project: Jobly")
+    assert chunk.embedding_text == "Project: Jobly\n\nAdmins can ban users."
+    assert Chunk("No title here.", "a.md", 0).embedding_text == "No title here."
+
+
+def test_prompt_label_shows_title_when_present():
+    hits = [Hit(Chunk("text", "jobly.md", 0, title="Project: Jobly"), 0.9)]
+    assert "[1] (Project: Jobly; source: jobly.md)" in build_messages("q", hits)[1]["content"]
+
+
+def test_old_index_without_titles_still_loads(tmp_path):
+    (tmp_path / "chunks.json").write_text('[{"text": "old", "source": "a.md", "index": 0}]')
+    np.save(tmp_path / "vectors.npy", np.zeros((1, 3), dtype=np.float32))
+    assert VectorStore.load(tmp_path).chunks[0].title == ""

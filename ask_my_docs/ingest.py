@@ -23,6 +23,14 @@ def load_documents(folder: Path) -> list[tuple[str, str]]:
     return documents
 
 
+def extract_title(text: str) -> str:
+    """The text of the first top-level Markdown heading ("# Title"), or ""."""
+    for line in text.splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    return ""
+
+
 def build_index(folder: Path) -> VectorStore:
     documents = load_documents(folder)
     if not documents:
@@ -32,8 +40,9 @@ def build_index(folder: Path) -> VectorStore:
 
     chunks: list[Chunk] = []
     for source, text in documents:
+        title = extract_title(text)
         for i, piece in enumerate(chunk_text(text, config.CHUNK_SIZE, config.CHUNK_OVERLAP)):
-            chunks.append(Chunk(text=piece, source=source, index=i))
+            chunks.append(Chunk(text=piece, source=source, index=i, title=title))
 
-    vectors = embed([c.text for c in chunks], prefix=config.DOC_PREFIX)
+    vectors = embed([c.embedding_text for c in chunks], prefix=config.DOC_PREFIX)
     return VectorStore(chunks, vectors)
