@@ -116,6 +116,11 @@ The web stream sends one JSON object per line: `{"type":"sources"}` first, then 
   not name what they are about.
 - **Document structure matters.** Contact details buried at the end of a long profile were
   retrieved poorly. Short, separate documents with one fact per plain sentence work best.
+- **Recording video of the UI:** Playwright's `recordVideo` ignores `deviceScaleFactor` and leaves
+  the rest of the canvas grey (verify frame corners; a pixel of 128,128,128 is the grey). Use a
+  mobile-emulated browser with a 780x1848 viewport and a `width=390` meta viewport instead. At
+  that size recording starves the CPU-only model, so answers are captured first and replayed.
+  Details are in `scripts/demo/README.md`. Do not claim a demo is "live" if it was replayed.
 - **A grid column stretched the whole page on phones.** The row of passage cards is wider
   than the screen on purpose (it scrolls sideways), and a grid item cannot shrink below its
   content by default, so the page became horizontally scrollable. Fix: `minmax(0, 1fr)` and
@@ -175,8 +180,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
 - Pushing needs the Claude GitHub App installed on the `nassertarynix` account for this repo.
   A `fatal: expected 'acknowledgments'` line during push is a harmless negotiation warning.
 - Re-record the demos with `scripts/demo/` if the UI or behaviour changes. Keep the note in
-  the terminal demo saying that typing and streaming speed are simulated, and the "2x SPEED"
-  tag in the mobile demo (waiting for the model is sped up, because recording at phone
-  resolution roughly halves the CPU model's speed).
+  the terminal demo saying that typing and streaming speed are simulated, and the last caption
+  of the mobile demo saying that the answers were captured from a real run and replayed.
 - Chromium and Playwright for Node are preinstalled; do not reinstall them. Take UI screenshots
   at phone size (390x844, 2x) in both colour schemes before and after a visual change.

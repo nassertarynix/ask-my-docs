@@ -33,12 +33,13 @@ the portfolio demo corpus described below.)
 
 <img src="docs/demo/web_demo.gif" alt="Phone-sized demo of the web interface" width="300">
 
-- [Mobile demo, 72 s (MP4)](docs/demo/web_demo.mp4): a real recording of the web app at phone
-  size, using the local model: ask a question, watch the passages appear first and the answer
-  stream in, swipe the passages, open a cited passage, get a refusal for a question the
-  documents cannot answer, and see the light and dark themes. The taps and captions were added
-  for the video. Time spent waiting for the model is played at 2x, and the video shows a
-  "2x SPEED" tag while it is.
+- [Mobile demo, 64 s (MP4)](docs/demo/web_demo.mp4): a recording of the web app at phone size
+  in a real browser: ask a question, watch the passages appear first and the answer stream in,
+  swipe the passages, open a cited passage, get a refusal for a question the documents cannot
+  answer, and see the light and dark themes. The taps and captions were added for the video.
+  The model's answers were captured from a real run and replayed during the recording (a
+  phone-resolution recording leaves a CPU-only model too little CPU to answer at normal speed),
+  and the video says so in its last caption. The app and its retrieval are the real ones.
 - [Command-line demo, 57 s (MP4)](docs/demo/terminal_demo.mp4): a terminal replay of real,
   captured output (ingest, ask, retrieval only, a refused question, the evaluation, the
   tests). Typing and streaming speed are simulated, and the video says so.
