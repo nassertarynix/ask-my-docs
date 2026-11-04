@@ -180,3 +180,11 @@ def test_failure_without_known_issue_still_fails(store):
 def test_load_cases_reads_known_issue(tmp_path):
     path = write(tmp_path, [{"question": "q", "known_issue": "why"}])
     assert load_cases(path)[0].known_issue == "why"
+
+
+def test_known_issue_is_not_reported_as_fixed_when_answers_were_not_checked(store):
+    case = Case("What does Jobly use?", "Cubit", "redux", known_issue="model gets this wrong")
+    results = evaluate.run_evaluation(store, [case], k=1)  # retrieval only: no answer generated
+    report = evaluate.format_report(results, k=1)
+    assert "answer not checked in this run" in report
+    assert "NOW PASSES" not in report

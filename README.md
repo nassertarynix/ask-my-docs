@@ -29,6 +29,18 @@ color in any of the passages.
 (Outputs above are from `llama3.2:3b` on the bundled `sample_docs`. The screenshot uses
 the portfolio demo corpus described below.)
 
+## Demo
+
+![Web interface demo](docs/demo/web_demo.gif)
+
+- [Web interface demo, 73 s (MP4)](docs/demo/web_demo.mp4): a real recording of the app in a
+  browser, using the local model. The cursor and captions were added for the video.
+- [Command-line demo, 57 s (MP4)](docs/demo/terminal_demo.mp4): a terminal replay of real,
+  captured output (ingest, ask, retrieval only, a refused question, the evaluation, the
+  tests). Typing and streaming speed are simulated, and the video says so.
+
+Both can be re-recorded with the scripts in [`scripts/demo/`](scripts/demo/).
+
 ## How it works
 
 ```
@@ -183,6 +195,8 @@ ask_my_docs/
   web.py          FastAPI app: status + streaming ask endpoint
   static/         single-page frontend (plain HTML/CSS/JS, no build step)
 sample_docs/      fictional company handbook (generic demo and tests)
+docs/             screenshot and demo videos
+scripts/demo/     scripts that record the demo videos
 portfolio_docs/   documents about the author, built from public portfolio data
 evals/            question sets for the `evaluate` command
 tests/            unit tests: chunking, search, persistence, prompts, web API (no Ollama needed)

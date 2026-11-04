@@ -115,7 +115,12 @@ def format_report(results: list[Result], k: int) -> str:
         if r.answer_ok is False:
             lines.append(f"      answer was: {' '.join((r.answer or '').split())[:200]}")
         if r.case.known_issue:
-            status = "still failing" if _failed(r, k) else "NOW PASSES, consider removing the note"
+            if _failed(r, k):
+                status = "still failing"
+            elif r.answer_ok is None and r.case.answer_matches:
+                status = "answer not checked in this run"  # retrieval-only mode
+            else:
+                status = "NOW PASSES, consider removing the note"
             lines.append(f"      known issue ({status}): {r.case.known_issue}")
 
     scored = [r for r in results if r.case.context_contains]
