@@ -98,24 +98,56 @@ python -m ask_my_docs serve
 Try: "What does Al-Nasser do at Tarynix?", "Which state management does Jobly use?", or
 "Does Al-Nasser know Rust?" (not in the documents, so it should say it doesn't know).
 
+## Evaluation
+
+```bash
+python -m ask_my_docs evaluate evals/portfolio.json --retrieval-only   # seconds, no chat model
+python -m ask_my_docs evaluate evals/portfolio.json                    # also checks answers
+```
+
+Each case in a JSON file has a question, text that a retrieved chunk must contain,
+and a pattern the answer must match; questions the documents cannot answer have only an
+answer pattern ("I don't know"). The report shows the rank of the right passage, whether
+each answer passed (a bare `[1]` does not count), and `hit@1` / `hit@k`. The exit code is
+non-zero when a case fails, so it can guard against regressions. A case can carry a
+`known_issue` note: it is still reported, but does not fail the run, and it is flagged if
+it starts passing.
+
+Latest results with `llama3.2:3b` (temperature 0, top-k 4):
+
+| Question set | Retrieval hit@1 | Retrieval hit@4 | Answers |
+|---|---|---|---|
+| `evals/portfolio.json` (19 cases, 3 unanswerable) | 15 / 16 | 16 / 16 | 17 / 18, plus 1 known issue |
+| `evals/handbook.json` (7 cases, 1 unanswerable) | 6 / 6 | 6 / 6 | 7 / 7 |
+
+Read these numbers with care. I wrote the questions while developing the tool and changed
+the documents and prompt after seeing failures, so they are not a held-out test set and
+are optimistic. They are best used to catch regressions.
+
 ## What testing a small model taught me
 
 The default 3B model is free and private, but it needs a careful prompt:
 
-- **Retrieval was never the problem.** On a 14-question check over the portfolio
-  documents, the right passage was always in the top 4. Adding each document's title to
-  the text that is embedded improved the ranking, because a chunk from the middle of a
-  document often never names the project it is about.
+- **Retrieval was never the problem.** On the 16 answerable questions in
+  `evals/portfolio.json` the right passage is in the top 4 every time (15 of 16 rank
+  first). Adding each document's title to the text that is embedded improved the
+  ranking, because a chunk from the middle of a document often never names the project
+  it is about.
 - **The prompt was.** The first prompt sometimes got a bare `[1]` as the whole answer, or
   the model copied the passage labels back. Explicit rules ("never reply with only a
   citation"), a different label format, and the instruction placed after the question
-  raised a 12-question answer check from 7 to 12 correct.
+  took an early 12-question answer check from 7 to 12 correct.
 - **Chunking matters.** Splitting long bulleted text at arbitrary characters produced
   orphan fragments that lost the project name. Splitting at line breaks and sentence
   ends fixed that.
-- **Some weaknesses remain.** Reading the answers, not just scoring them, showed
-  occasional small inventions and incomplete lists (for example, naming two of three
-  courses). A larger local model or a hosted one (see Configuration) is the fix.
+- **Document structure matters too.** Contact details buried at the end of a long
+  profile were retrieved poorly and the model skipped them. A short, separate document
+  that states each fact in a plain sentence fixed it.
+- **Single runs of a language model are misleading.** One question passed on a lucky run
+  and failed 4 times out of 5. Temperature now defaults to 0 so results are repeatable.
+- **Some weaknesses remain.** The 3B model leaves items out of list answers (it names two
+  of three courses). That case is kept in the evaluation as a documented known issue. A
+  larger local model or a hosted one (see Configuration) is the fix.
 
 ## Configuration
 
@@ -130,6 +162,7 @@ All settings are environment variables; the defaults target local Ollama.
 | `EMBED_DOC_PREFIX` / `EMBED_QUERY_PREFIX` | `search_document: ` / `search_query: ` | Task prefixes used by nomic; set to empty for other models |
 | `CHUNK_SIZE` / `CHUNK_OVERLAP` | `800` / `120` | Chunking, in characters |
 | `TOP_K` | `4` | Passages retrieved per question |
+| `TEMPERATURE` | `0` | Sampling temperature; 0 makes answers repeatable |
 | `INDEX_DIR` | `index` | Where the index is saved |
 
 Because the client speaks the OpenAI-compatible API, switching to a hosted model is a
@@ -145,11 +178,13 @@ ask_my_docs/
   ingest.py       folder -> chunks -> vectors -> index
   rag.py          the retrieval step, shared by CLI and web
   generate.py     grounded prompt + streamed answer
+  evaluate.py     scores retrieval and answers against a question file
   cli.py          `ingest`, `ask` and `serve` commands
   web.py          FastAPI app: status + streaming ask endpoint
   static/         single-page frontend (plain HTML/CSS/JS, no build step)
 sample_docs/      fictional company handbook (generic demo and tests)
 portfolio_docs/   documents about the author, built from public portfolio data
+evals/            question sets for the `evaluate` command
 tests/            unit tests: chunking, search, persistence, prompts, web API (no Ollama needed)
 ```
 
@@ -174,5 +209,8 @@ Run the tests with `pip install -r requirements-dev.txt && pytest`.
   exact terms such as names and numbers.
 - Small local models answer slowly on CPU (about 5 to 15 seconds here) and can miss
   details, so check the cited sources.
-- The question sets used for the checks above are not in the repo yet; an `evaluate`
-  command with a fixed question file would make the results reproducible.
+- The question sets are small and were written by the author, so scores are optimistic.
+
+## License
+
+[MIT](LICENSE)

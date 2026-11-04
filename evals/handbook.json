@@ -1,0 +1,16 @@
+[
+  {"question": "How many days can I work remotely each week?",
+   "context_contains": "three days per week", "answer_matches": "three|3"},
+  {"question": "How quickly must I report a lost laptop, and who do I tell?",
+   "context_contains": "within one hour", "answer_matches": "one hour|1 hour"},
+  {"question": "How much is the learning budget?",
+   "context_contains": "1,200", "answer_matches": "1,200|1200"},
+  {"question": "How many days of paid time off do employees get?",
+   "context_contains": "24 days", "answer_matches": "24"},
+  {"question": "How long is parental leave for primary caregivers?",
+   "context_contains": "16 weeks", "answer_matches": "16"},
+  {"question": "How big is the home office stipend?",
+   "context_contains": "600 dollars", "answer_matches": "600"},
+  {"question": "What is the CEO's favorite color?",
+   "answer_matches": "don't know"}
+]

@@ -24,3 +24,7 @@ INDEX_DIR = Path(os.getenv("INDEX_DIR", "index"))
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "800"))  # characters
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "120"))  # characters
 TOP_K = int(os.getenv("TOP_K", "4"))
+
+# 0 = greedy decoding: the same question gives the same answer, which keeps
+# evaluation results reproducible and suits factual answers from documents.
+TEMPERATURE = float(os.getenv("TEMPERATURE", "0"))

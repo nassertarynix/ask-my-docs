@@ -39,6 +39,19 @@ def cmd_ask(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_evaluate(args: argparse.Namespace) -> int:
+    from . import evaluate  # local import keeps `ask` start-up light
+
+    store = VectorStore.load(config.INDEX_DIR)
+    cases = evaluate.load_cases(Path(args.cases))
+    answer_fn = None if args.retrieval_only else stream_answer
+    mode = "retrieval only" if args.retrieval_only else "retrieval + answers (slow on CPU)"
+    print(f"Evaluating {len(cases)} cases against '{config.INDEX_DIR}': {mode}\n")
+    results = evaluate.run_evaluation(store, cases, k=args.top_k, answer_fn=answer_fn)
+    print(evaluate.format_report(results, k=args.top_k))
+    return 0 if evaluate.all_passed(results, args.top_k) else 1
+
+
 def cmd_serve(args: argparse.Namespace) -> int:
     import uvicorn  # imported here so `ingest` and `ask` work without web extras
 
@@ -66,6 +79,14 @@ def build_parser() -> argparse.ArgumentParser:
     ask.add_argument("--no-llm", action="store_true",
                      help="Only show retrieved passages; skip answer generation")
     ask.set_defaults(func=cmd_ask)
+
+    evaluate = sub.add_parser("evaluate", help="Score retrieval and answers on a question file")
+    evaluate.add_argument("cases", help="JSON file of test questions (see evals/)")
+    evaluate.add_argument("-k", "--top-k", type=int, default=config.TOP_K,
+                          help="Passages retrieved per question (default: %(default)s)")
+    evaluate.add_argument("--retrieval-only", action="store_true",
+                          help="Skip answer generation: fast, needs no chat model")
+    evaluate.set_defaults(func=cmd_evaluate)
 
     serve = sub.add_parser("serve", help="Start the web interface")
     serve.add_argument("--host", default="127.0.0.1",

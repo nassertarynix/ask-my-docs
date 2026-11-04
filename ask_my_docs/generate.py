@@ -48,7 +48,7 @@ def stream_answer(question: str, hits: list[Hit]) -> Iterator[str]:
     stream = client.chat.completions.create(
         model=config.CHAT_MODEL,
         messages=build_messages(question, hits),
-        temperature=0.1,
+        temperature=config.TEMPERATURE,
         stream=True,
     )
     for event in stream:

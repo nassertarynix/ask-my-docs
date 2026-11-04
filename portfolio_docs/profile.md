@@ -15,10 +15,3 @@ Al-Nasser does not tie his identity to a single framework. In his view, tech sta
 ## Education
 
 Al-Nasser Haddad holds a B.Sc. in Software Engineering from Damascus University, class of 2025.
-
-## Links and contact
-
-- Portfolio: https://al-nasser-haddad.pages.dev/ (a CV can be downloaded from the portfolio)
-- GitHub: https://github.com/Nasser117
-- LinkedIn: https://linkedin.com/in/al-nasser-haddad
-- Email: alnaser.h@gmail.com

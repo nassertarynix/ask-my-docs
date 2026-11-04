@@ -72,3 +72,23 @@ def test_old_index_without_titles_still_loads(tmp_path):
     (tmp_path / "chunks.json").write_text('[{"text": "old", "source": "a.md", "index": 0}]')
     np.save(tmp_path / "vectors.npy", np.zeros((1, 3), dtype=np.float32))
     assert VectorStore.load(tmp_path).chunks[0].title == ""
+
+
+def test_stream_answer_uses_configured_temperature(monkeypatch):
+    from ask_my_docs import config, generate
+
+    captured = {}
+
+    class FakeCompletions:
+        def create(self, **kwargs):
+            captured.update(kwargs)
+            return iter([])
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            self.chat = type("Chat", (), {"completions": FakeCompletions()})()
+
+    monkeypatch.setattr(generate, "OpenAI", FakeClient)
+    monkeypatch.setattr(config, "TEMPERATURE", 0.0)
+    assert list(generate.stream_answer("q", [])) == []
+    assert captured["temperature"] == 0.0 and captured["stream"] is True
