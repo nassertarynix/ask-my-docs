@@ -26,7 +26,8 @@ SYSTEM_PROMPT = (
 def build_messages(question: str, hits: list[Hit]) -> list[dict[str, str]]:
     def label(hit: Hit) -> str:
         chunk = hit.chunk
-        return f"{chunk.title} - {chunk.source}" if chunk.title else chunk.source
+        where = f"{chunk.source}, page {chunk.page}" if chunk.page else chunk.source
+        return f"{chunk.title} - {where}" if chunk.title else where
 
     passages = "\n\n".join(
         f"Passage {n} ({label(hit)}):\n{hit.chunk.text}"

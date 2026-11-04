@@ -110,6 +110,7 @@ mark{background:linear-gradient(transparent 56%,var(--mark-wash) 56% 93%,transpa
 .num{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:7px;background:var(--mark);
   color:var(--mark-ink);font:700 12px/1 var(--ui)}
 .score{font:500 12px/1 var(--mono);color:var(--muted);margin-left:auto}
+.pg{font:500 12px/1 var(--mono);color:var(--muted)}
 .tag{font:600 11px/1 var(--ui);letter-spacing:.04em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);
   border-radius:6px;padding:4px 6px}
 .src-name{font:600 15px/1.25 var(--ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -287,7 +288,7 @@ const EXAMPLE_SETS = {
   "remote_work.md": [
     "How many days can I work remotely each week?",
     "How quickly must I report a lost laptop, and who do I tell?",
-    "How much is the learning budget?",
+    "What is the meal allowance while travelling?",
     "What is the CEO's favorite color?",
   ],
 };
@@ -317,7 +318,8 @@ const toBottom = () => scrollTo({ top: document.documentElement.scrollHeight, be
 function openSheet(source) {
   els.sheetNum.textContent = source.n;
   els.sheetTitle.textContent = source.source;
-  els.sheetMeta.textContent = "chunk " + source.chunk + " · similarity " + source.score.toFixed(2);
+  els.sheetMeta.textContent = (source.page ? "page " + source.page + " · " : "") + "chunk " + source.chunk +
+    " · similarity " + source.score.toFixed(2);
   els.sheetBar.style.width = Math.max(0, Math.min(1, source.score)) * 100 + "%";
   els.sheetText.textContent = cleanPassage(source.text);
   els.sheetText.scrollTop = 0;
@@ -362,7 +364,9 @@ function renderRail(turn) {
     button.type = "button";
     button.setAttribute("aria-label", "Open passage " + source.n + " from " + source.source);
     const top = el("span", "src-top");
-    top.append(el("span", "num", String(source.n)), el("span", "score", source.score.toFixed(2)));
+    top.append(el("span", "num", String(source.n)));
+    if (source.page) top.append(el("span", "pg", "p. " + source.page));
+    top.append(el("span", "score", source.score.toFixed(2)));
     const bar = el("span", "bar"); const fill = el("i");
     fill.style.width = Math.max(0, Math.min(1, source.score)) * 100 + "%"; bar.append(fill);
     button.append(top, el("span", "src-name", source.source), el("span", "src-snip", snippet(source.text)), bar);

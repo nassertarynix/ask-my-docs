@@ -14,7 +14,7 @@ from .store import VectorStore
 def cmd_ingest(args: argparse.Namespace) -> int:
     folder = Path(args.folder)
     print(f"Reading documents from '{folder}' ...")
-    store = build_index(folder)
+    store = build_index(folder, on_warning=lambda message: print(f"Warning: {message}", file=sys.stderr))
     store.save(config.INDEX_DIR)
     sources = {c.source for c in store.chunks}
     print(f"Indexed {len(store)} chunks from {len(sources)} file(s) into '{config.INDEX_DIR}'.")
@@ -34,7 +34,8 @@ def cmd_ask(args: argparse.Namespace) -> int:
     print("Sources:")
     for n, hit in enumerate(hits, start=1):
         preview = " ".join(hit.chunk.text.split())[:140]
-        print(f"  [{n}] {hit.chunk.source} (chunk {hit.chunk.index}, score {hit.score:.2f})")
+        page = f", page {hit.chunk.page}" if hit.chunk.page else ""
+        print(f"  [{n}] {hit.chunk.source} (chunk {hit.chunk.index}{page}, score {hit.score:.2f})")
         print(f"      {preview}...")
     return 0
 
@@ -68,7 +69,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    ingest = sub.add_parser("ingest", help="Index a folder of .md/.txt files")
+    ingest = sub.add_parser("ingest", help="Index a folder of .md, .txt and .pdf files")
     ingest.add_argument("folder", help="Folder containing your documents")
     ingest.set_defaults(func=cmd_ingest)
 

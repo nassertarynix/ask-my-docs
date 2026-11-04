@@ -5,7 +5,7 @@ Guidance for Claude Code (and any other agent or developer) working in this repo
 ## What this project is
 
 **Ask My Docs** is a small, local **retrieval-augmented generation (RAG)** tool. You point it
-at a folder of `.md` or `.txt` files, ask a question in plain language, and it answers using
+at a folder of `.md`, `.txt` or `.pdf` files, ask a question in plain language, and it answers using
 only the most relevant passages, citing them as `[1]`, `[2]`. If the documents do not contain
 the answer it says "I don't know based on the provided documents." Everything runs locally
 with [Ollama](https://ollama.com), so no API key, no cost, and no data leaves the machine.
@@ -35,7 +35,7 @@ python -m ask_my_docs ask "..." --no-llm             # retrieval only, no chat m
 python -m ask_my_docs serve                          # web UI at http://127.0.0.1:8000
 python -m ask_my_docs evaluate evals/portfolio.json --retrieval-only   # fast
 python -m ask_my_docs evaluate evals/portfolio.json                    # also answers, ~5 min on CPU
-pytest -q                                            # 62 tests, no Ollama needed
+pytest -q                                            # 77 tests, no Ollama needed
 node scripts/ui_smoke.js                             # UI check in a phone-sized browser (server + Ollama running)
 ```
 
@@ -46,8 +46,8 @@ ask_my_docs/
   config.py       settings from environment variables (defaults target local Ollama)
   chunking.py     chunk_text(): paragraphs -> lines -> sentences -> fixed windows, with overlap
   embeddings.py   embed(): OpenAI-compatible API, batched, L2-normalised float32 vectors
-  store.py        Chunk (text, source, index, title), Hit, VectorStore (cosine search; JSON + .npy)
-  ingest.py       load_documents(), extract_title(), build_index()
+  store.py        Chunk (text, source, index, title, page), Hit, VectorStore (cosine search; JSON + .npy)
+  ingest.py       load_documents() (md, txt, pdf), read_pdf(), reflow_pdf_text(), build_index()
   rag.py          retrieve(): embed the question, return top-k hits
   generate.py     SYSTEM_PROMPT, build_messages(), stream_answer() (streams tokens)
   evaluate.py     load_cases(), run_evaluation(), format_report(); supports "known_issue"
@@ -87,7 +87,8 @@ The web stream sends one JSON object per line: `{"type":"sources"}` first, then 
   citations and the headline), Instrument Sans for the interface and Newsreader for answers
   and passages. The app makes **no requests to other sites**, so fonts are self-hosted, and
   `tests/test_web.py` fails if the page references any `https://` resource.
-- **Dependencies stay minimal:** `openai`, `numpy`, `fastapi`, `uvicorn`; dev: `pytest`, `httpx`.
+- **Dependencies stay minimal:** `openai`, `numpy`, `fastapi`, `uvicorn`, `pypdf` (pure Python, for PDFs);
+  dev: `pytest`, `httpx`.
 - **`TEMPERATURE` defaults to 0** so answers and evaluation results are repeatable.
 - The server has no authentication and binds to `127.0.0.1`. Do not suggest exposing it.
 
@@ -112,6 +113,12 @@ The web stream sends one JSON object per line: `{"type":"sources"}` first, then 
 - **Chunking:** splitting long bullet lists at arbitrary characters made orphan fragments that
   lost the project name. Split at line breaks, then sentence ends. Chunks deliberately start
   with the tail of the previous chunk (overlap), so a chunk beginning mid-sentence is expected.
+- **PDFs need clean-up before chunking.** Extracted text has hard-wrapped lines, ligature characters
+  ("ﬁ" never matches a search for "fi") and no paragraph breaks. `reflow_pdf_text()` normalises (NFKC),
+  rejoins wrapped lines, and keeps short heading-like lines as their own paragraph. PDFs are chunked
+  page by page so every chunk has one page number to cite. A bad PDF must never stop an ingest: it is
+  skipped with a warning (scanned, damaged, password protected). `sample_docs/orbit_labs_expenses.pdf`
+  is the fixture; evals cover it.
 - **Embedding the document title with every chunk** improved ranking: middle chunks often do
   not name what they are about.
 - **Document structure matters.** Contact details buried at the end of a long profile were

@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from ask_my_docs import web
-from ask_my_docs.store import Chunk, VectorStore
+from ask_my_docs.store import Chunk, Hit, VectorStore
 
 
 @pytest.fixture
@@ -99,3 +99,9 @@ def test_fonts_are_served_locally_with_their_licenses(client):
 def test_home_page_loads_no_third_party_resources(client):
     page = client.get("/").text
     assert "fonts.googleapis.com" not in page and "https://" not in page.replace("https://w3.org", "")
+
+
+def test_sources_include_the_pdf_page_number():
+    hits = [Hit(Chunk("text", "policy.pdf", 4, page=2), 0.8), Hit(Chunk("text", "notes.md", 0), 0.7)]
+    payload = web._source_payload(hits)
+    assert payload[0]["page"] == 2 and payload[1]["page"] is None

@@ -92,3 +92,17 @@ def test_stream_answer_uses_configured_temperature(monkeypatch):
     monkeypatch.setattr(config, "TEMPERATURE", 0.0)
     assert list(generate.stream_answer("q", [])) == []
     assert captured["temperature"] == 0.0 and captured["stream"] is True
+
+
+def test_prompt_label_names_the_pdf_page():
+    hits = [Hit(Chunk("text", "policy.pdf", 0, title="Travel Policy", page=3), 0.9)]
+    assert "Passage 1 (Travel Policy - policy.pdf, page 3):" in build_messages("q", hits)[1]["content"]
+
+
+def test_page_numbers_survive_saving_and_old_indexes_still_load(tmp_path):
+    chunks = [Chunk("a", "p.pdf", 0, page=2), Chunk("b", "n.md", 0)]
+    VectorStore(chunks, np.eye(2, dtype=np.float32)).save(tmp_path)
+    assert [c.page for c in VectorStore.load(tmp_path).chunks] == [2, None]
+    (tmp_path / "chunks.json").write_text('[{"text": "old", "source": "a.md", "index": 0}]')
+    np.save(tmp_path / "vectors.npy", np.zeros((1, 2), dtype=np.float32))
+    assert VectorStore.load(tmp_path).chunks[0].page is None

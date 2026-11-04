@@ -12,7 +12,8 @@ class Chunk:
     text: str
     source: str  # file the chunk came from, relative to the ingested folder
     index: int  # position of the chunk within that file
-    title: str = ""  # the document's title (its first "# " heading), if any
+    title: str = ""  # the document's title (its first "# " heading, or a PDF's title), if any
+    page: int | None = None  # page number for PDFs, so answers can cite "page 3"
 
     @property
     def embedding_text(self) -> str:

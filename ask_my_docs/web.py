@@ -39,6 +39,7 @@ def _source_payload(hits: list[Hit]) -> list[dict]:
             "n": n,
             "source": hit.chunk.source,
             "chunk": hit.chunk.index,
+            "page": hit.chunk.page,
             "score": round(hit.score, 4),
             "text": hit.chunk.text,
         }

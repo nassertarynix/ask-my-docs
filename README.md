@@ -51,7 +51,7 @@ Both can be re-recorded with the scripts in [`scripts/demo/`](scripts/demo/).
 ```
  ingest                                   ask
  ------                                   ---
- .md/.txt files                           question
+ .md .txt .pdf files                       question
       |                                      |
    chunk (~800 chars, overlap)            embed (same model)
       |                                      |
@@ -88,7 +88,14 @@ python -m ask_my_docs ask "How many days can I work remotely each week?"
 Useful flags: `-k 6` retrieves more passages; `--no-llm` shows only the retrieved
 passages (handy for debugging retrieval without waiting for the model).
 
-To use your own notes, run `ingest` on any folder of `.md` or `.txt` files.
+To use your own documents, run `ingest` on any folder of `.md`, `.txt` or `.pdf` files.
+
+**PDFs:** text is read page by page, so a citation can say which page a passage came from
+(`policy.pdf, page 2`). The text is cleaned up first: ligature characters are normalised and
+hard-wrapped lines are rejoined into paragraphs. A scanned PDF has no text to read (OCR is not
+supported), and a damaged or password-protected one cannot be read; `ingest` skips such files
+with a warning and carries on with the rest. Tables and multi-column layouts come out as plain
+text and may read oddly.
 
 ### Web interface
 
@@ -147,7 +154,7 @@ Latest results with `llama3.2:3b` (temperature 0, top-k 4):
 | Question set | Retrieval hit@1 | Retrieval hit@4 | Answers |
 |---|---|---|---|
 | `evals/portfolio.json` (24 cases, 3 unanswerable) | 19 / 21 | 21 / 21 | 22 / 23, plus 1 known issue |
-| `evals/handbook.json` (7 cases, 1 unanswerable) | 6 / 6 | 6 / 6 | 7 / 7 |
+| `evals/handbook.json` (11 cases, 1 unanswerable; includes a PDF) | 9 / 10 | 10 / 10 | 11 / 11 |
 
 Read these numbers with care. I wrote the questions while developing the tool and changed
 the documents and prompt after seeing failures, so they are not a held-out test set and
@@ -211,7 +218,7 @@ ask_my_docs/
   cli.py          `ingest`, `ask`, `evaluate` and `serve` commands
   web.py          FastAPI app: status + streaming ask endpoint
   static/         mobile-first frontend (plain HTML/CSS/JS, no build step) and its fonts
-sample_docs/      fictional company handbook (generic demo and tests)
+sample_docs/      fictional company handbook, including a PDF (generic demo and tests)
 docs/             screenshots and demo videos
 scripts/demo/     scripts that record the demo videos
 portfolio_docs/   documents about the author, built from public portfolio data
@@ -235,7 +242,7 @@ Run the tests with `pip install -r requirements-dev.txt && pytest`.
 
 ## Limitations and next steps
 
-- Only `.md` and `.txt` files; no PDF or HTML loading yet.
+- Text files and text-based PDFs only. Scanned PDFs (no OCR), HTML, Word and web pages are not read.
 - Pure vector search; adding keyword search (BM25) and a reranker would help with
   exact terms such as names and numbers.
 - Small local models answer slowly on CPU (about 5 to 15 seconds here) and can miss
