@@ -117,7 +117,7 @@ Latest results with `llama3.2:3b` (temperature 0, top-k 4):
 
 | Question set | Retrieval hit@1 | Retrieval hit@4 | Answers |
 |---|---|---|---|
-| `evals/portfolio.json` (19 cases, 3 unanswerable) | 15 / 16 | 16 / 16 | 17 / 18, plus 1 known issue |
+| `evals/portfolio.json` (21 cases, 3 unanswerable) | 17 / 18 | 18 / 18 | 19 / 20, plus 1 known issue |
 | `evals/handbook.json` (7 cases, 1 unanswerable) | 6 / 6 | 6 / 6 | 7 / 7 |
 
 Read these numbers with care. I wrote the questions while developing the tool and changed
@@ -128,8 +128,8 @@ are optimistic. They are best used to catch regressions.
 
 The default 3B model is free and private, but it needs a careful prompt:
 
-- **Retrieval was never the problem.** On the 16 answerable questions in
-  `evals/portfolio.json` the right passage is in the top 4 every time (15 of 16 rank
+- **Retrieval was never the problem.** On the 18 answerable questions in
+  `evals/portfolio.json` the right passage is in the top 4 every time (17 of 18 rank
   first). Adding each document's title to the text that is embedded improved the
   ranking, because a chunk from the middle of a document often never names the project
   it is about.

@@ -18,7 +18,7 @@ TAYAR was a 5th-year graduation project (2024 to 2025) at Damascus University. A
 
 ## Tayar architecture and tech stack
 
-The TAYAR user app is built with Flutter (Material 3). State management uses BLoC / Cubit, and the architecture follows the MVVM pattern. The portfolio lists the stack as Flutter, React, and Laravel, and records these technical decisions: Laravel for a custom, scalable backend, dual apps to handle the shop and maintenance sides, and Cubit for state management. Stripe API keys are configured through environment variables.
+The TAYAR user app is built with Flutter (Material 3). State management uses BLoC / Cubit, and the architecture follows the MVVM pattern. The backend of Tayar is Laravel, chosen as a custom, scalable backend. The portfolio also lists React in the stack. Other technical decisions: dual apps to handle the shop and maintenance sides, and Cubit for state management. Stripe API keys are configured through environment variables.
 
 ## Problem, solution, challenges and learnings (Tayar Shop)
 

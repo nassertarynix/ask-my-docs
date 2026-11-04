@@ -19,7 +19,7 @@ Tecno Library was a third-year college group project from 2023. Al-Nasser Haddad
 
 ## Tecno Library architecture and tech stack
 
-The Tecno Library app is built with Flutter (Dart) and follows a layered MVC architecture powered by GetX. The Model layer holds data structures and API models, the View layer holds UI screens, and the Controller layer holds business logic and state. GetX handles state management, dependency injection, and routing. The backend is Laravel (PHP). Local storage uses GetStorage and SQLite.
+The Tecno Library app is built with Flutter (Dart) and follows a layered MVC architecture powered by GetX. The Model layer holds data structures and API models, the View layer holds UI screens, and the Controller layer holds business logic and state. GetX handles state management, dependency injection, and routing. The backend is Laravel (PHP), and Firebase is used for notifications. Local storage uses GetStorage and SQLite.
 
 Packages used in Tecno Library: get, flutter_svg, http, image_picker, scroll_date_picker, get_storage, and flutter_rating_bar.
 
