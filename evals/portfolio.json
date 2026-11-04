@@ -8,7 +8,7 @@
   {"question": "What is Fix Me?", "context_contains": "personal tracker", "answer_matches": "tracker"},
   {"question": "Is Fix Me published on GitHub?", "context_contains": "no public GitHub repository"},
   {"question": "Where did he study and when did he graduate?", "context_contains": "class of 2025", "answer_matches": "damascus"},
-  {"question": "Which courses did he complete in 2026?", "context_contains": "McKinsey", "answer_matches": "(?=.*mckinsey)(?=.*ibm)(?=.*averroa)", "known_issue": "The 3B model reliably lists only two of the three 2026 courses; retrieval is fine."},
+  {"question": "Which courses did he complete in 2026?", "context_contains": "McKinsey", "answer_matches": "(?=.*mckinsey)(?=.*ibm)(?=.*averroa)", "known_issue": "The 3B model gets this list wrong every run (it omits a 2026 course or adds one from another year); retrieval is fine."},
   {"question": "What colors does the Jobly app use?", "context_contains": "#8A2BE2", "answer_matches": "purple|magenta|8a2be2"},
   {"question": "Which packages does Tecno Library use?", "context_contains": "flutter_rating_bar", "answer_matches": "flutter_svg|get_storage|image_picker"},
   {"question": "What payment provider does Tayar use?", "context_contains": "Stripe", "answer_matches": "stripe"},
@@ -19,5 +19,8 @@
   {"question": "What is his GitHub username?", "context_contains": "github.com/Nasser117", "answer_matches": "nasser117"},
   {"question": "Does Al-Nasser know Rust?", "answer_matches": "don't know"},
   {"question": "Who is the CEO of Tarynix?", "answer_matches": "don't know"},
-  {"question": "What is the capital of France?", "answer_matches": "don't know"}
+  {"question": "What is the capital of France?", "answer_matches": "don't know"},
+  {"question": "What are the three apps in the Tayar graduation project?", "context_contains": "admin dashboard", "answer_matches": "(?=.*shop)(?=.*worker)(?=.*dashboard)"},
+  {"question": "What is React used for in Jobly and Tayar?", "context_contains": "React for the dashboards", "answer_matches": "dashboard"},
+  {"question": "Which project was his graduation project?", "context_contains": "graduation project", "answer_matches": "tayar"}
 ]

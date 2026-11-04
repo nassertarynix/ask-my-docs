@@ -4,7 +4,7 @@ Jobly is a job search and recruitment mobile app with the tagline "Connecting ta
 
 ## Context and role
 
-Jobly was a university project described in its README as a fourth-year project and an educational prototype that is not intended for production use. Al-Nasser Haddad worked on Jobly as a Mobile Developer. The README credits three mobile developers: Nasser Haddad, Anas Al-lahhaam, and Rami Abd Al-hameed.
+Jobly was a fourth-year university project and an educational prototype that is not intended for production use. It was not his graduation project, which was TAYAR. Al-Nasser Haddad worked on Jobly as a Mobile Developer. The README credits three mobile developers: Nasser Haddad, Anas Al-lahhaam, and Rami Abd Al-hameed.
 
 ## The three user roles in Jobly
 
@@ -22,7 +22,7 @@ For admins: ban or unban users, delete problematic accounts, review and accept o
 
 ## Jobly architecture and tech stack
 
-Jobly is built with Flutter and uses the MVVM pattern with Flutter BLoC (Cubit) for state management. The Model parses data and handles SQLite and API logic, the View is pure UI that reacts to state changes, and the ViewModel (Cubit) manages business logic and emits Loading, Success and Error states. Shared Preferences stores the theme and the login token. The portfolio lists the stack as Flutter, React, and Laravel.
+Jobly is built with Flutter and uses the MVVM pattern with Flutter BLoC (Cubit) for state management. The Model parses data and handles SQLite and API logic, the View is pure UI that reacts to state changes, and the ViewModel (Cubit) manages business logic and emits Loading, Success and Error states. Shared Preferences stores the theme and the login token. Al-Nasser's own stack on Jobly is Flutter for the mobile app, React for the dashboards, and Laravel.
 
 The UI uses a bold magenta and white palette: magenta purple (#8A2BE2) as primary, deep purple (#4B0082) as secondary, pure white for backgrounds, and charcoal black (#333333) for text.
 

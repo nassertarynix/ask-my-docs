@@ -4,7 +4,7 @@ TAYAR is a specialized platform for solar energy solutions, with the tagline "E-
 
 ## Context and role
 
-TAYAR was a 5th-year graduation project (2024 to 2025) at Damascus University. Al-Nasser Haddad was the Team Lead and a Mobile Developer on Tayar Shop. The repository README credits Nasser Haddad (Team Lead) and Rami Abd-alhameed for the frontend. The project has two apps, one for shoppers and one for maintenance workshops, so the portfolio shows separate user and worker screens.
+TAYAR was Al-Nasser Haddad's graduation project: the fifth and final year (2024 to 2025) of the five-year Software Engineering degree at Damascus University. Al-Nasser Haddad was the Team Lead and a Mobile Developer on Tayar Shop. The repository README credits Nasser Haddad (Team Lead) and Rami Abd-alhameed for the frontend. The graduation project has three apps: the shop app for customers (the user app described here), the worker app for maintenance workshops, and an admin dashboard. The shop and worker apps are Flutter apps; the admin dashboard is a React web page, not a Flutter app.
 
 ## Features of the TAYAR user app
 
@@ -18,7 +18,7 @@ TAYAR was a 5th-year graduation project (2024 to 2025) at Damascus University. A
 
 ## Tayar architecture and tech stack
 
-The TAYAR user app is built with Flutter (Material 3). State management uses BLoC / Cubit, and the architecture follows the MVVM pattern. The backend of Tayar is Laravel, chosen as a custom, scalable backend. The portfolio also lists React in the stack. Other technical decisions: dual apps to handle the shop and maintenance sides, and Cubit for state management. Stripe API keys are configured through environment variables.
+The TAYAR user app is built with Flutter (Material 3). State management uses BLoC / Cubit, and the architecture follows the MVVM pattern. The backend of Tayar is Laravel, chosen as a custom, scalable backend, and the admin dashboard is built with React. Al-Nasser's own stack on Tayar is Flutter, React, and Laravel. Other technical decisions: dual apps (shop and worker) to handle the shop and maintenance sides, and Cubit for state management. Stripe API keys are configured through environment variables.
 
 ## Problem, solution, challenges and learnings (Tayar Shop)
 

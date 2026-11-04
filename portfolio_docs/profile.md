@@ -6,7 +6,7 @@ Al-Nasser Haddad is a Software Engineer. His portfolio presents him as a Softwar
 
 Al-Nasser bridges the gap between clean engineering and thoughtful user experiences. He works across ERP systems, full-stack web, and mobile. This includes developing custom Odoo modules and website themes, building web apps with React, TypeScript and Next.js, and integrating third-party AI services into product features.
 
-Mobile development is where Al-Nasser started. He led a three-app Flutter graduation project as team lead. He enjoys working directly with clients to turn business needs into working software. He builds digital tools to be functional first, solving real-world problems efficiently without adding unnecessary complexity.
+Mobile development is where Al-Nasser started. He led his graduation project, TAYAR, as team lead. It had three apps: a Flutter shop app, a Flutter worker app, and a React admin dashboard. He enjoys working directly with clients to turn business needs into working software. He builds digital tools to be functional first, solving real-world problems efficiently without adding unnecessary complexity.
 
 ## Philosophy
 

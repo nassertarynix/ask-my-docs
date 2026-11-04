@@ -117,7 +117,7 @@ Latest results with `llama3.2:3b` (temperature 0, top-k 4):
 
 | Question set | Retrieval hit@1 | Retrieval hit@4 | Answers |
 |---|---|---|---|
-| `evals/portfolio.json` (21 cases, 3 unanswerable) | 17 / 18 | 18 / 18 | 19 / 20, plus 1 known issue |
+| `evals/portfolio.json` (24 cases, 3 unanswerable) | 19 / 21 | 21 / 21 | 22 / 23, plus 1 known issue |
 | `evals/handbook.json` (7 cases, 1 unanswerable) | 6 / 6 | 6 / 6 | 7 / 7 |
 
 Read these numbers with care. I wrote the questions while developing the tool and changed
@@ -128,8 +128,8 @@ are optimistic. They are best used to catch regressions.
 
 The default 3B model is free and private, but it needs a careful prompt:
 
-- **Retrieval was never the problem.** On the 18 answerable questions in
-  `evals/portfolio.json` the right passage is in the top 4 every time (17 of 18 rank
+- **Retrieval was never the problem.** On the 21 answerable questions in
+  `evals/portfolio.json` the right passage is in the top 4 every time (19 of 21 rank
   first). Adding each document's title to the text that is embedded improved the
   ranking, because a chunk from the middle of a document often never names the project
   it is about.
@@ -145,8 +145,8 @@ The default 3B model is free and private, but it needs a careful prompt:
   that states each fact in a plain sentence fixed it.
 - **Single runs of a language model are misleading.** One question passed on a lucky run
   and failed 4 times out of 5. Temperature now defaults to 0 so results are repeatable.
-- **Some weaknesses remain.** The 3B model leaves items out of list answers (it names two
-  of three courses). That case is kept in the evaluation as a documented known issue. A
+- **Some weaknesses remain.** The 3B model gets list answers wrong (for the 2026 courses it
+  omits one or adds a course from another year). That case is kept in the evaluation as a documented known issue. A
   larger local model or a hosted one (see Configuration) is the fix.
 
 ## Configuration
