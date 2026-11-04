@@ -75,8 +75,8 @@ Both can be re-recorded with the scripts in [`scripts/demo/`](scripts/demo/).
 ## Quickstart
 
 Requires Python 3.10+ and [Ollama](https://ollama.com/download). On some Linux systems the
-command is `python3` instead of `python`. Tested on a clean checkout with Python 3.11, 3.12 and 3.13 on Linux (the tests on all three; the
-full Quickstart on 3.13). Python 3.10 and Windows have not been tested.
+command is `python3` instead of `python`. The tests run in CI on Python 3.10, 3.11, 3.12 and 3.13 (Linux), and the full Quickstart was
+followed on a clean checkout with Python 3.13. Windows has not been tested.
 
 ```bash
 ollama pull nomic-embed-text     # embedding model (~274 MB)
