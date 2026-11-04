@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask My Docs</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --surface: #131a26;
+    --surface-2: #182132;
+    --border: #243049;
+    --text: #e8edf6;
+    --muted: #97a3b8;
+    --accent: #00d4f0;
+    --accent-ink: #04222a;
+    --danger: #ff6b6b;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface-2: #eef2f9;
+      --border: #d5dcea;
+      --text: #121a2b;
+      --muted: #566178;
+      --accent: #007c91;
+      --accent-ink: #ffffff;
+      --danger: #c62828;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 24px; }
+  h1 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+  .status { color: var(--muted); font-size: 14px; }
+  .status.bad { color: var(--danger); }
+  .lede { color: var(--muted); margin: 0 0 20px; }
+
+  form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+  textarea {
+    width: 100%; resize: vertical; min-height: 64px;
+    background: var(--surface-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px; font: inherit;
+  }
+  textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; }
+  .row .spacer { flex: 1; }
+  button.primary {
+    background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px;
+    padding: 10px 22px; font: inherit; font-weight: 700; cursor: pointer;
+  }
+  button.primary:disabled { opacity: .55; cursor: not-allowed; }
+  .check { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; margin: 0; }
+  select {
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px 8px; font: inherit; font-size: 14px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip {
+    background: transparent; color: var(--muted); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .chip:hover { color: var(--text); border-color: var(--accent); }
+
+  section.panel { margin-top: 24px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+  .steps { display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .step { border: 1px solid var(--border); border-radius: 999px; padding: 2px 12px; }
+  .step.active { border-color: var(--accent); color: var(--accent); }
+  .step.done { color: var(--text); }
+  .answer {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; white-space: pre-wrap; min-height: 56px;
+  }
+  .answer.error { border-color: var(--danger); color: var(--danger); }
+  .cite {
+    display: inline-block; min-width: 22px; height: 22px; line-height: 20px; padding: 0 6px;
+    margin: 0 2px; background: var(--surface-2); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 6px; font: inherit; font-size: 12px;
+    font-weight: 700; cursor: pointer; vertical-align: 1px;
+  }
+  .sources { display: grid; gap: 10px; }
+  .source {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px;
+  }
+  .source.flash { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+  .source-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+  .badge {
+    background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 12px;
+    border-radius: 6px; padding: 0 7px;
+  }
+  .file { font-weight: 600; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .bar { height: 4px; background: var(--surface-2); border-radius: 2px; margin: 8px 0; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--accent); }
+  details summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+  details p { margin: 8px 0 0; white-space: pre-wrap; font-size: 14px; color: var(--muted); }
+  .empty { color: var(--muted); font-size: 14px; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: no-preference) { .source { transition: border-color .2s, box-shadow .2s; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Ask <span>My Docs</span></h1>
+    <div id="status" class="status" role="status">Checking index…</div>
+  </header>
+  <p class="lede">Ask a question. The most relevant passages are retrieved from your documents, then a local model answers using only those passages.</p>
+
+  <form id="form">
+    <label for="question">Your question</label>
+    <textarea id="question" maxlength="1000" placeholder="e.g. How many days can I work remotely each week?"></textarea>
+    <div class="row">
+      <button id="submit" class="primary" type="submit">Ask</button>
+      <label class="check" for="topk">Passages
+        <select id="topk">
+          <option>2</option><option>3</option><option selected>4</option><option>6</option><option>8</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="use-llm" checked> Generate answer</label>
+      <span class="spacer"></span>
+      <span class="meta" id="timing"></span>
+    </div>
+    <div class="chips" id="chips" hidden></div>
+  </form>
+
+  <section class="panel" id="result" hidden>
+    <div class="steps" id="steps">
+      <span class="step" data-step="retrieve">1 · Retrieve</span>
+      <span class="step" data-step="generate">2 · Generate</span>
+    </div>
+    <h2>Answer</h2>
+    <div class="answer" id="answer" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" id="sources-panel" hidden>
+    <h2>Sources</h2>
+    <div class="sources" id="sources"></div>
+  </section>
+
+  <footer>Runs entirely on your machine. Answers can be wrong, so check the cited sources.</footer>
+</div>
+
+<script>
+const $ = (selector) => document.querySelector(selector);
+const els = {
+  form: $("#form"), question: $("#question"), submit: $("#submit"), topk: $("#topk"),
+  useLlm: $("#use-llm"), status: $("#status"), timing: $("#timing"), chips: $("#chips"),
+  result: $("#result"), answer: $("#answer"), sourcesPanel: $("#sources-panel"),
+  sources: $("#sources"), steps: $("#steps"),
+};
+const EXAMPLES = [
+  "How many days can I work remotely each week?",
+  "How quickly must I report a lost laptop, and who do I tell?",
+  "How much is the learning budget?",
+  "What is the CEO's favorite color?",
+];
+let answerText = "";
+
+function setStep(active) {
+  const order = ["retrieve", "generate"];
+  els.steps.querySelectorAll(".step").forEach((el) => {
+    const i = order.indexOf(el.dataset.step), a = order.indexOf(active);
+    el.classList.toggle("active", i === a);
+    el.classList.toggle("done", a === -1 ? true : i < a);
+  });
+}
+
+function renderAnswer(text) {
+  // Build nodes (never innerHTML) so model output cannot inject markup.
+  els.answer.replaceChildren();
+  text.split(/(\[\d+\])/).forEach((part) => {
+    const match = part.match(/^\[(\d+)\]$/);
+    if (match) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "cite";
+      button.textContent = match[1];
+      button.setAttribute("aria-label", "Show source " + match[1]);
+      button.addEventListener("click", () => flashSource(Number(match[1])));
+      els.answer.append(button);
+    } else if (part) {
+      els.answer.append(document.createTextNode(part));
+    }
+  });
+}
+
+function flashSource(n) {
+  const card = document.getElementById("source-" + n);
+  if (!card) return;
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("flash");
+  setTimeout(() => card.classList.remove("flash"), 1500);
+}
+
+function renderSources(sources) {
+  els.sources.replaceChildren();
+  sources.forEach((s) => {
+    const card = document.createElement("div");
+    card.className = "source";
+    card.id = "source-" + s.n;
+
+    const head = document.createElement("div");
+    head.className = "source-head";
+    const badge = Object.assign(document.createElement("span"), { className: "badge", textContent: s.n });
+    const file = Object.assign(document.createElement("span"), { className: "file", textContent: s.source });
+    const meta = Object.assign(document.createElement("span"), {
+      className: "meta", textContent: "chunk " + s.chunk + " · similarity " + s.score.toFixed(2),
+    });
+    head.append(badge, file, meta);
+
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    const fill = document.createElement("i");
+    fill.style.width = Math.max(0, Math.min(1, s.score)) * 100 + "%";
+    bar.append(fill);
+
+    const details = document.createElement("details");
+    const summary = Object.assign(document.createElement("summary"), { textContent: "Show passage" });
+    const body = Object.assign(document.createElement("p"), { textContent: s.text });
+    details.append(summary, body);
+
+    card.append(head, bar, details);
+    els.sources.append(card);
+  });
+}
+
+function handleEvent(event, started) {
+  if (event.type === "sources") {
+    renderSources(event.sources);
+    els.sourcesPanel.hidden = false;
+    els.timing.textContent = "retrieved in " + Math.round(performance.now() - started) + " ms";
+    if (els.useLlm.checked) { setStep("generate"); els.answer.textContent = "Generating…"; }
+    else { setStep(null); els.answer.textContent = "Answer generation is turned off. Showing retrieved passages only."; }
+  } else if (event.type === "token") {
+    answerText += event.text;
+    renderAnswer(answerText);
+  } else if (event.type === "done") {
+    setStep(null);
+    els.timing.textContent = "done in " + ((performance.now() - started) / 1000).toFixed(1) + " s";
+  } else if (event.type === "error") {
+    showError(event.message);
+  }
+}
+
+function showError(message) {
+  setStep(null);
+  els.answer.classList.add("error");
+  els.answer.textContent = message;
+}
+
+async function ask(question) {
+  answerText = "";
+  els.result.hidden = false;
+  els.sourcesPanel.hidden = true;
+  els.answer.classList.remove("error");
+  els.answer.textContent = "";
+  els.timing.textContent = "";
+  els.submit.disabled = true;
+  setStep("retrieve");
+  const started = performance.now();
+  try {
+    const response = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, top_k: Number(els.topk.value), use_llm: els.useLlm.checked }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(typeof body.detail === "string" ? body.detail : "Request failed (" + response.status + ")");
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let newline;
+      while ((newline = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, newline).trim();
+        buffer = buffer.slice(newline + 1);
+        if (line) handleEvent(JSON.parse(line), started);
+      }
+    }
+  } catch (error) {
+    showError(error.message || "Something went wrong.");
+  } finally {
+    els.submit.disabled = false;
+  }
+}
+
+els.form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const question = els.question.value.trim();
+  if (question) ask(question);
+});
+els.question.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); els.form.requestSubmit(); }
+});
+
+async function loadStatus() {
+  try {
+    const info = await (await fetch("/api/status")).json();
+    if (!info.indexed) {
+      els.status.classList.add("bad");
+      els.status.textContent = "No index yet. Run: python -m ask_my_docs ingest <folder>";
+      els.submit.disabled = true;
+      return;
+    }
+    els.status.textContent = info.chunks + " chunks · " + info.documents.length + " files · " + info.chat_model;
+    if (info.documents.includes("remote_work.md")) {
+      els.chips.hidden = false;
+      EXAMPLES.forEach((text) => {
+        const chip = Object.assign(document.createElement("button"), { type: "button", className: "chip", textContent: text });
+        chip.addEventListener("click", () => { els.question.value = text; els.form.requestSubmit(); });
+        els.chips.append(chip);
+      });
+    }
+  } catch (error) {
+    els.status.classList.add("bad");
+    els.status.textContent = "Could not reach the server.";
+  }
+}
+loadStatus();
+</script>
+</body>
+</html>

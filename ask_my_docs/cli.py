@@ -5,9 +5,9 @@ import sys
 from pathlib import Path
 
 from . import config
-from .embeddings import embed
 from .generate import stream_answer
 from .ingest import build_index
+from .rag import retrieve
 from .store import VectorStore
 
 
@@ -23,8 +23,7 @@ def cmd_ingest(args: argparse.Namespace) -> int:
 
 def cmd_ask(args: argparse.Namespace) -> int:
     store = VectorStore.load(config.INDEX_DIR)
-    query_vector = embed([args.question], prefix=config.QUERY_PREFIX)[0]
-    hits = store.search(query_vector, k=args.top_k)
+    hits = retrieve(store, args.question, k=args.top_k)
 
     if not args.no_llm:
         print("Answer:")
@@ -37,6 +36,16 @@ def cmd_ask(args: argparse.Namespace) -> int:
         preview = " ".join(hit.chunk.text.split())[:140]
         print(f"  [{n}] {hit.chunk.source} (chunk {hit.chunk.index}, score {hit.score:.2f})")
         print(f"      {preview}...")
+    return 0
+
+
+def cmd_serve(args: argparse.Namespace) -> int:
+    import uvicorn  # imported here so `ingest` and `ask` work without web extras
+
+    from .web import create_app
+
+    print(f"Serving Ask My Docs at http://{args.host}:{args.port}  (Ctrl+C to stop)")
+    uvicorn.run(create_app(), host=args.host, port=args.port, log_level="warning")
     return 0
 
 
@@ -57,6 +66,13 @@ def build_parser() -> argparse.ArgumentParser:
     ask.add_argument("--no-llm", action="store_true",
                      help="Only show retrieved passages; skip answer generation")
     ask.set_defaults(func=cmd_ask)
+
+    serve = sub.add_parser("serve", help="Start the web interface")
+    serve.add_argument("--host", default="127.0.0.1",
+                       help="Address to bind (default: %(default)s; local only)")
+    serve.add_argument("--port", type=int, default=8000,
+                       help="Port to listen on (default: %(default)s)")
+    serve.set_defaults(func=cmd_serve)
     return parser
 
 
