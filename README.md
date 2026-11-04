@@ -10,8 +10,8 @@ with the passages it used shown as sources. Everything runs on your machine with
 ```
 $ python -m ask_my_docs ask "How quickly must I report a lost laptop, and who do I tell?"
 Answer:
-According to [1], you must report a lost laptop within one hour. You should send the
-report to security@orbitlabs.example or message the on-call engineer in #security-help.
+You must report a lost laptop within one hour, and you should send the report to
+security@orbitlabs.example or message the on-call engineer in the #security-help channel. [1]
 
 Sources:
   [1] security.md (chunk 0, score 0.71)
@@ -22,8 +22,12 @@ If the documents do not contain the answer, it says so instead of guessing:
 
 ```
 $ python -m ask_my_docs ask "What is the CEO's favorite color?"
-I don't know based on the provided documents.
+I don't know based on the provided documents. There is no mention of the CEO's favorite
+color in any of the passages.
 ```
+
+(Outputs above are from `llama3.2:3b` on the bundled `sample_docs`. The screenshot uses
+the portfolio demo corpus described below.)
 
 ## How it works
 
@@ -80,6 +84,39 @@ Citation badges in the answer jump to the matching source, and each source has a
 similarity bar and an expandable passage. It binds to `127.0.0.1` by default and has no
 login, so keep it local; do not expose it to a network as-is.
 
+## Demo corpus: ask about the author's portfolio
+
+`portfolio_docs/` holds documents about the author, Al-Nasser Haddad, written from his
+public portfolio and the public README files of his GitHub projects. Index it to get an
+"ask about my work" assistant:
+
+```bash
+python -m ask_my_docs ingest portfolio_docs
+python -m ask_my_docs serve
+```
+
+Try: "What does Al-Nasser do at Tarynix?", "Which state management does Jobly use?", or
+"Does Al-Nasser know Rust?" (not in the documents, so it should say it doesn't know).
+
+## What testing a small model taught me
+
+The default 3B model is free and private, but it needs a careful prompt:
+
+- **Retrieval was never the problem.** On a 14-question check over the portfolio
+  documents, the right passage was always in the top 4. Adding each document's title to
+  the text that is embedded improved the ranking, because a chunk from the middle of a
+  document often never names the project it is about.
+- **The prompt was.** The first prompt sometimes got a bare `[1]` as the whole answer, or
+  the model copied the passage labels back. Explicit rules ("never reply with only a
+  citation"), a different label format, and the instruction placed after the question
+  raised a 12-question answer check from 7 to 12 correct.
+- **Chunking matters.** Splitting long bulleted text at arbitrary characters produced
+  orphan fragments that lost the project name. Splitting at line breaks and sentence
+  ends fixed that.
+- **Some weaknesses remain.** Reading the answers, not just scoring them, showed
+  occasional small inventions and incomplete lists (for example, naming two of three
+  courses). A larger local model or a hosted one (see Configuration) is the fix.
+
 ## Configuration
 
 All settings are environment variables; the defaults target local Ollama.
@@ -111,7 +148,8 @@ ask_my_docs/
   cli.py          `ingest`, `ask` and `serve` commands
   web.py          FastAPI app: status + streaming ask endpoint
   static/         single-page frontend (plain HTML/CSS/JS, no build step)
-sample_docs/      fictional company handbook used for the demo
+sample_docs/      fictional company handbook (generic demo and tests)
+portfolio_docs/   documents about the author, built from public portfolio data
 tests/            unit tests: chunking, search, persistence, prompts, web API (no Ollama needed)
 ```
 
@@ -134,5 +172,7 @@ Run the tests with `pip install -r requirements-dev.txt && pytest`.
 - Only `.md` and `.txt` files; no PDF or HTML loading yet.
 - Pure vector search; adding keyword search (BM25) and a reranker would help with
   exact terms such as names and numbers.
-- Small local models answer slowly on CPU and can miss details in long contexts.
-- No automated retrieval-quality evaluation yet.
+- Small local models answer slowly on CPU (about 5 to 15 seconds here) and can miss
+  details, so check the cited sources.
+- The question sets used for the checks above are not in the repo yet; an `evaluate`
+  command with a fixed question file would make the results reproducible.
