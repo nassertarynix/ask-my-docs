@@ -45,9 +45,10 @@ def test_prompt_numbers_passages_and_includes_question():
     hits = [Hit(Chunk("first text", "a.md", 0), 0.9), Hit(Chunk("second text", "b.md", 1), 0.8)]
     messages = build_messages("What is up?", hits)
     user = messages[1]["content"]
-    assert "[1] (source: a.md)" in user and "first text" in user
-    assert "[2] (source: b.md)" in user
-    assert user.endswith("Question: What is up?")
+    assert "Passage 1 (a.md):\nfirst text" in user
+    assert "Passage 2 (b.md):\nsecond text" in user
+    assert "Question: What is up?" in user
+    assert user.endswith("cite passages like [1].")
 
 
 def test_embedding_text_includes_the_document_title():
@@ -58,7 +59,13 @@ def test_embedding_text_includes_the_document_title():
 
 def test_prompt_label_shows_title_when_present():
     hits = [Hit(Chunk("text", "jobly.md", 0, title="Project: Jobly"), 0.9)]
-    assert "[1] (Project: Jobly; source: jobly.md)" in build_messages("q", hits)[1]["content"]
+    assert "Passage 1 (Project: Jobly - jobly.md):" in build_messages("q", hits)[1]["content"]
+
+
+def test_system_prompt_forbids_citation_only_answers():
+    system = build_messages("q", [])[0]["content"]
+    assert "Never reply with only a citation" in system
+    assert "I don't know based on the provided documents." in system
 
 
 def test_old_index_without_titles_still_loads(tmp_path):
