@@ -35,7 +35,8 @@ python -m ask_my_docs ask "..." --no-llm             # retrieval only, no chat m
 python -m ask_my_docs serve                          # web UI at http://127.0.0.1:8000
 python -m ask_my_docs evaluate evals/portfolio.json --retrieval-only   # fast
 python -m ask_my_docs evaluate evals/portfolio.json                    # also answers, ~5 min on CPU
-pytest -q                                            # 60 tests, no Ollama needed
+pytest -q                                            # 62 tests, no Ollama needed
+node scripts/ui_smoke.js                             # UI check in a phone-sized browser (server + Ollama running)
 ```
 
 ## Architecture
@@ -52,13 +53,15 @@ ask_my_docs/
   evaluate.py     load_cases(), run_evaluation(), format_report(); supports "known_issue"
   web.py          FastAPI app: GET /, GET /api/status, POST /api/ask (newline-delimited JSON stream)
   cli.py          argparse commands: ingest, ask, evaluate, serve
-  static/index.html   the whole frontend: plain HTML/CSS/JS, no build step
+  static/index.html   the whole frontend: mobile-first, plain HTML/CSS/JS, no build step
+  static/fonts/       self-hosted Instrument Sans + Newsreader (woff2) and their OFL licences
 sample_docs/      fictional "Orbit Labs" handbook: generic demo and test corpus
 portfolio_docs/   documents about the owner, built from the public portfolio and project READMEs
 evals/            JSON question sets for `evaluate` (portfolio.json, handbook.json)
 tests/            pytest: chunking, store and prompt, ingest, web API (mocked), evaluation
-docs/             screenshot.png and demo/ (web_demo.mp4/.gif, terminal_demo.mp4)
+docs/             screenshot.png (phone), screenshot-desktop.png, demo/ (web_demo.mp4/.gif, terminal_demo.mp4)
 scripts/demo/     scripts that record the demo videos (see its README)
+scripts/ui_smoke.js   Playwright smoke test of the web UI (not part of pytest)
 ```
 
 Data flow. **Ingest:** files -> chunk -> embed `title + chunk` with the `search_document: `
@@ -75,6 +78,15 @@ The web stream sends one JSON object per line: `{"type":"sources"}` first, then 
   variables for models that do not use nomic's task prefixes.
 - **No frontend framework.** Model and document text is inserted with `textContent`, never
   as HTML. Keep it that way.
+- **The UI is mobile first.** Design and test at 360 to 430 px wide first, then widen.
+  Rules: no horizontal page scroll at any width (a test script checks 320 to 1280 px); touch
+  targets at least 44 px; the composer is docked at the bottom with `env(safe-area-inset-*)`
+  padding; inputs are at least 16 px so iOS does not zoom; light and dark follow
+  `prefers-color-scheme`; respect `prefers-reduced-motion`.
+- **Look:** cool paper and ink with an ultramarine brand and a highlighter-yellow mark (used for
+  citations and the headline), Instrument Sans for the interface and Newsreader for answers
+  and passages. The app makes **no requests to other sites**, so fonts are self-hosted, and
+  `tests/test_web.py` fails if the page references any `https://` resource.
 - **Dependencies stay minimal:** `openai`, `numpy`, `fastapi`, `uvicorn`; dev: `pytest`, `httpx`.
 - **`TEMPERATURE` defaults to 0** so answers and evaluation results are repeatable.
 - The server has no authentication and binds to `127.0.0.1`. Do not suggest exposing it.
@@ -104,6 +116,12 @@ The web stream sends one JSON object per line: `{"type":"sources"}` first, then 
   not name what they are about.
 - **Document structure matters.** Contact details buried at the end of a long profile were
   retrieved poorly. Short, separate documents with one fact per plain sentence work best.
+- **A grid column stretched the whole page on phones.** The row of passage cards is wider
+  than the screen on purpose (it scrolls sideways), and a grid item cannot shrink below its
+  content by default, so the page became horizontally scrollable. Fix: `minmax(0, 1fr)` and
+  `min-width: 0` on grid items that hold scrolling content. Check overflow after UI changes.
+- **White text on a bright yellow marker is unreadable in dark mode.** The headline highlight
+  uses a translucent wash there (`--mark-wash`).
 - **Single runs of a language model mislead.** A case passed once and failed 4 of 5 repeats at
   temperature 0.1. Hence temperature 0 and the `known_issue` mechanism.
 - **Known weakness:** the 3B model gets list answers wrong (the "courses completed in 2026"
@@ -157,4 +175,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
 - Pushing needs the Claude GitHub App installed on the `nassertarynix` account for this repo.
   A `fatal: expected 'acknowledgments'` line during push is a harmless negotiation warning.
 - Re-record the demos with `scripts/demo/` if the UI or behaviour changes. Keep the note in
-  the terminal demo saying that typing and streaming speed are simulated.
+  the terminal demo saying that typing and streaming speed are simulated, and the "2x SPEED"
+  tag in the mobile demo (waiting for the model is sped up, because recording at phone
+  resolution roughly halves the CPU model's speed).
+- Chromium and Playwright for Node are preinstalled; do not reinstall them. Take UI screenshots
+  at phone size (390x844, 2x) in both colour schemes before and after a visual change.

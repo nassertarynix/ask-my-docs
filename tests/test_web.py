@@ -87,3 +87,15 @@ def test_model_failure_is_reported_in_the_stream(client, monkeypatch):
     got = events(client.post("/api/ask", json={"question": "Remote days?"}))
     assert got[-1]["type"] == "error"
     assert "model exploded" in got[-1]["message"]
+
+
+def test_fonts_are_served_locally_with_their_licenses(client):
+    font = client.get("/static/fonts/InstrumentSans-latin.woff2")
+    assert font.status_code == 200 and len(font.content) > 10_000
+    assert client.get("/static/fonts/OFL-Newsreader.txt").status_code == 200
+    assert client.get("/static/fonts/missing.woff2").status_code == 404
+
+
+def test_home_page_loads_no_third_party_resources(client):
+    page = client.get("/").text
+    assert "fonts.googleapis.com" not in page and "https://" not in page.replace("https://w3.org", "")

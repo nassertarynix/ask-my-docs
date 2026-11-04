@@ -6,19 +6,25 @@ behaviour changes noticeably.
 Needs: Ollama running with the two models pulled, the project dependencies, Node.js with
 Playwright (`require('playwright')`), and `ffmpeg`.
 
-## Web interface demo (a real recording)
+## Mobile demo (a real recording)
 
 ```bash
 python -m ask_my_docs ingest portfolio_docs
 python -m ask_my_docs ask "warm up" -k 1 > /dev/null     # load the model first
 python -m ask_my_docs serve --port 8000 &
-node scripts/demo/record_web.js out/                      # writes a .webm into out/
-ffmpeg -ss 0.9 -i out/*.webm -c:v libx264 -crf 22 -pix_fmt yuv420p -movflags +faststart -an docs/demo/web_demo.mp4
+node scripts/demo/record_web.js out/                      # writes out/*.webm and out/marks.json
+python scripts/demo/finish_video.py out/*.webm out/marks.json docs/demo/web_demo.mp4
 ```
 
-`record_web.js` drives a real browser: it types the questions, clicks, and waits for the
-real model to answer. A cursor and short captions are injected into the page for the video
-only; the app itself is unchanged. Window size is 1180x740 so the interface is readable.
+`record_web.js` drives a real phone-sized browser (390x844 at 2x, touch enabled). The app runs
+unmodified inside an iframe on a small "stage" page that adds a caption strip above it and a
+finger that shows taps and swipes, because headless browsers draw neither. It types the
+questions, taps, and waits for the real model to answer. At the end it flips the colour scheme
+to show both themes (`DEMO_THEME=light` starts in light mode instead).
+
+Recording at this resolution makes the CPU-only model about twice as slow as usual, so the
+stretches spent waiting for the model are marked, shown with a "2x SPEED" tag, and played at
+double speed by `finish_video.py`. Keep the tag: it is what makes the speed-up honest.
 
 ## Command-line demo (a replay of real output)
 

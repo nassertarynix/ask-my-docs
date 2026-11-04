@@ -10,6 +10,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from openai import APIConnectionError
 from pydantic import BaseModel, Field
 
@@ -47,6 +48,8 @@ def _source_payload(hits: list[Hit]) -> list[dict]:
 
 def create_app(index_dir: Path | None = None) -> FastAPI:
     app = FastAPI(title="Ask My Docs")
+    # Fonts are served from the app itself, so the page makes no requests to other sites.
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     directory = index_dir or config.INDEX_DIR
     cache: dict = {"mtime": None, "store": None}
 

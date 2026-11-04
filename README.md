@@ -5,7 +5,7 @@ notes, ask questions in plain language, and get an answer grounded in your docum
 with the passages it used shown as sources. Everything runs on your machine with
 [Ollama](https://ollama.com): no API key, no cost, no data leaves your computer.
 
-![Ask My Docs web interface](docs/screenshot.png)
+![Ask My Docs on a phone: the welcome screen, an answer with its passages in light mode, the same in dark mode, and a passage open in the bottom sheet](docs/screenshot.png)
 
 ```
 $ python -m ask_my_docs ask "How quickly must I report a lost laptop, and who do I tell?"
@@ -31,10 +31,14 @@ the portfolio demo corpus described below.)
 
 ## Demo
 
-![Web interface demo](docs/demo/web_demo.gif)
+<img src="docs/demo/web_demo.gif" alt="Phone-sized demo of the web interface" width="300">
 
-- [Web interface demo, 73 s (MP4)](docs/demo/web_demo.mp4): a real recording of the app in a
-  browser, using the local model. The cursor and captions were added for the video.
+- [Mobile demo, 72 s (MP4)](docs/demo/web_demo.mp4): a real recording of the web app at phone
+  size, using the local model: ask a question, watch the passages appear first and the answer
+  stream in, swipe the passages, open a cited passage, get a refusal for a question the
+  documents cannot answer, and see the light and dark themes. The taps and captions were added
+  for the video. Time spent waiting for the model is played at 2x, and the video shows a
+  "2x SPEED" tag while it is.
 - [Command-line demo, 57 s (MP4)](docs/demo/terminal_demo.mp4): a terminal replay of real,
   captured output (ingest, ask, retrieval only, a refused question, the evaluation, the
   tests). Typing and streaming speed are simulated, and the video says so.
@@ -91,10 +95,22 @@ To use your own notes, run `ingest` on any folder of `.md` or `.txt` files.
 python -m ask_my_docs serve          # then open http://127.0.0.1:8000
 ```
 
-The page shows the retrieved sources first, then streams the answer token by token.
-Citation badges in the answer jump to the matching source, and each source has a
-similarity bar and an expandable passage. It binds to `127.0.0.1` by default and has no
-login, so keep it local; do not expose it to a network as-is.
+Designed phone first, and it scales up to a centred column on larger screens:
+
+- The question box sits at the bottom, within thumb reach. An options button sets how many
+  passages to read, or turns answer writing off to see only the passages.
+- Retrieval shows first: the passages found appear as swipeable cards with a similarity bar.
+  Then the answer streams in, with the passages it cited marked.
+- Tap a citation or a card to read the whole passage in a bottom sheet.
+- A question the documents cannot answer gets a distinct "Not in your documents" answer.
+- Light and dark themes follow the device setting. The page needs no internet: its two fonts
+  (Instrument Sans and Newsreader, both SIL Open Font License, licences included) are served
+  by the app itself.
+
+<img src="docs/screenshot-desktop.png" alt="The same interface on a desktop screen" width="640">
+
+It binds to `127.0.0.1` by default and has no login, so keep it local; do not expose it to a
+network as-is.
 
 ## Demo corpus: ask about the author's portfolio
 
@@ -191,11 +207,11 @@ ask_my_docs/
   rag.py          the retrieval step, shared by CLI and web
   generate.py     grounded prompt + streamed answer
   evaluate.py     scores retrieval and answers against a question file
-  cli.py          `ingest`, `ask` and `serve` commands
+  cli.py          `ingest`, `ask`, `evaluate` and `serve` commands
   web.py          FastAPI app: status + streaming ask endpoint
-  static/         single-page frontend (plain HTML/CSS/JS, no build step)
+  static/         mobile-first frontend (plain HTML/CSS/JS, no build step) and its fonts
 sample_docs/      fictional company handbook (generic demo and tests)
-docs/             screenshot and demo videos
+docs/             screenshots and demo videos
 scripts/demo/     scripts that record the demo videos
 portfolio_docs/   documents about the author, built from public portfolio data
 evals/            question sets for the `evaluate` command
