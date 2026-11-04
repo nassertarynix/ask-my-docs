@@ -72,13 +72,15 @@ Both can be re-recorded with the scripts in [`scripts/demo/`](scripts/demo/).
 
 ## Quickstart
 
-Requires Python 3.10+ and [Ollama](https://ollama.com/download).
+Requires Python 3.10+ and [Ollama](https://ollama.com/download). On some Linux systems the
+command is `python3` instead of `python`. Tested end to end on a clean checkout with Python 3.13 on Linux.
 
 ```bash
 ollama pull nomic-embed-text     # embedding model (~274 MB)
 ollama pull llama3.2:3b          # chat model (~2 GB)
 
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate     # on Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 python -m ask_my_docs ingest sample_docs
