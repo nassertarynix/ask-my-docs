@@ -3,6 +3,7 @@
 // draw neither). The app's own code is untouched; only its header is nudged down so the caption
 // strip does not cover it.
 //
+// Adding the PDF and removing it again are LIVE: the page really uploads it to the real server.
 // The model's answers are REPLAYED, not generated live. Recording at phone resolution takes so much
 // CPU that a CPU-only model slows to a crawl, so capture_streams.js first records the real streamed
 // answers (with their timing) while nothing else is running, and this script replays them through a
@@ -15,7 +16,8 @@
 // and is painted sharply.
 //
 // Usage: node record_web.js <output-dir> <streams.json>
-//   Needs the server running (python -m ask_my_docs serve) with an index of portfolio_docs.
+//   Needs the server running (python -m ask_my_docs serve) with an index of the portfolio NOTES ONLY
+//   (no PDF: the demo adds it), and a streams.json captured with the PDF in the index.
 //   Env: DEMO_URL (the real app, default http://127.0.0.1:8000/), DEMO_THEME (dark or light, default dark).
 const { chromium } = require('playwright');
 const http = require('http');
@@ -26,6 +28,7 @@ const OUT = process.argv[2];
 const STREAMS = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
 const APP = process.env.DEMO_URL || 'http://127.0.0.1:8000/';
 const THEME = process.env.DEMO_THEME === 'light' ? 'light' : 'dark';
+const PDF = path.resolve(__dirname, '..', '..', 'sample_docs', 'orbit_labs_expenses.pdf');   // added live from the page
 const W = 390, H = 924, BAR = 80, S = 2;   // phone size in CSS px (incl. caption strip), strip height, zoom
 
 const OVERLAY = `
@@ -179,10 +182,24 @@ function startProxy(target) {
   await cap('…and it says so, instead of making something up.');
   await sleep(5200);
 
-  // ---- 7. a PDF: the answer cites the page
-  await cap('It reads PDFs too, and cites the page. A sample policy PDF is indexed here next to the notes.');
+  // ---- 7. add a document from the page (a real upload: the server really reads and indexes it)
+  await cap('Now add your own document. Tap the document count.');
   await tap('#new-chat');
-  await sleep(1400);
+  await sleep(1200);
+  await tap('#status');
+  await sleep(1800);
+  await cap('Choose a file. This one is a PDF: it is read, split into passages and indexed on the spot.');
+  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), tap('#pick')]);
+  await chooser.setFiles(PDF);
+  await page.waitForSelector('#queue li.ok', { timeout: 60000 });
+  await sleep(900);
+  await cap('Added: 2 passages from 2 pages. PDFs keep their page numbers.');
+  await sleep(4200);
+  await tap('#docs-close');
+  await sleep(900);
+
+  // ---- 8. ask about it: the answer cites the page
+  await cap('Now ask about the new PDF.');
   await tap('#question');
   await loc('#question').pressSequentially('What is the meal allowance while travelling?', { delay: 62 });
   await sleep(800);
@@ -192,30 +209,34 @@ function startProxy(target) {
   await page.evaluate(() => document.querySelector('.turn .rail').scrollIntoView({ block: 'center', behavior: 'smooth' }));
   await sleep(1200);
   await cap('The passage card shows its page: p. 2 of the PDF.');
-  await sleep(4200);
+  await sleep(4000);
   await scrollPage('end');
-  await sleep(900);
+  await sleep(800);
   await cap('Tap the citation to read that page.');
   await tap('.answer .cite');
-  await sleep(4800);
+  await sleep(4400);
   await tap('#sheet-close');
   await sleep(700);
 
-  // ---- 8. options
-  await cap('Options: choose how many passages to read, or show only the passages.');
-  await tap('#opt-btn');
-  await sleep(4200);
-  await tap('#opt-btn');
+  // ---- 9. remove it again (a real removal, so the demo leaves the index as it found it)
+  await cap('Remove it again. Remove asks for a second tap to confirm.');
+  await tap('#status');
+  await sleep(1500);
+  await tap('.doc-remove');
+  await sleep(1800);
+  await tap('.doc-remove');
+  await sleep(2600);
+  await tap('#docs-close');
   await sleep(700);
 
-  // ---- 9. themes, and the disclosure
+  // ---- 10. themes, and the disclosure
   await cap('It follows your phone’s light or dark setting.');
   await page.emulateMedia({ colorScheme: THEME === 'dark' ? 'light' : 'dark' });
   await sleep(3600);
   await page.evaluate(() => window.__hideFinger());
   await cap('Private, cited and open source: Ask My Docs.');
   await sleep(2800);
-  await cap('The answers in this video were captured from a real run of the model and replayed, so that recording does not slow it down.');
+  await cap('The answers in this video were captured from a real run of the model and replayed, so that recording does not slow it down. Adding and removing the PDF were done live.');
   await sleep(5200);
   await cap('');
   await sleep(500);

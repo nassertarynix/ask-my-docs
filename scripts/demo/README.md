@@ -6,21 +6,34 @@ behaviour changes noticeably.
 Needs: Ollama running with the two models pulled, the project dependencies, Node.js with
 Playwright (`require('playwright')`), and `ffmpeg`.
 
-## Mobile demo (a real browser, with replayed answers)
+## Mobile demo (a real browser; replayed answers; a live upload)
+
+The demo asks questions, then adds a PDF from the page, asks about it, and removes it again. So the
+recording needs an index of the notes only (no PDF), while the captured answers need the PDF.
 
 ```bash
-mkdir demo_docs && cp portfolio_docs/*.md sample_docs/orbit_labs_expenses.pdf demo_docs/   # notes + a PDF
-python -m ask_my_docs ingest demo_docs
-python -m ask_my_docs serve --port 8000 &
-node scripts/demo/capture_streams.js streams.json        # real answers + timing; run with the CPU idle
-node scripts/demo/record_web.js out/ streams.json         # writes out/*.webm
+# 1. Capture the real answers, with the PDF in the index (run with the CPU idle)
+mkdir demo_docs && cp portfolio_docs/*.md sample_docs/orbit_labs_expenses.pdf demo_docs/
+INDEX_DIR=idx_with_pdf python -m ask_my_docs ingest demo_docs
+INDEX_DIR=idx_with_pdf python -m ask_my_docs serve --port 8000 &
+node scripts/demo/capture_streams.js streams.json
+kill %1
+
+# 2. Record against an index WITHOUT the PDF; the demo uploads it live and removes it again
+mkdir notes_only && cp portfolio_docs/*.md notes_only/
+INDEX_DIR=idx_notes python -m ask_my_docs ingest notes_only
+cp -r idx_notes idx_run                                    # a fresh copy for every take
+INDEX_DIR=idx_run python -m ask_my_docs serve --port 8000 &
+node scripts/demo/record_web.js out/ streams.json          # writes out/*.webm
 python scripts/demo/finish_video.py out/*.webm docs/demo/web_demo.mp4
 ```
 
 `record_web.js` drives a phone-emulated browser. It injects a caption strip, a finger that shows
 taps and swipes, and nothing else into the page (headless browsers draw neither); the app's own
-code is untouched. It types the questions, taps, and flips the colour scheme at the end to show
-both themes (`DEMO_THEME=light` starts in light mode instead).
+code is untouched. It types the questions, taps, adds the PDF through the page's file picker, and
+flips the colour scheme at the end to show both themes (`DEMO_THEME=light` starts in light mode).
+The upload and the removal are real requests to the real server, so the index ends as it began;
+if a take fails half way, start the next one from a fresh copy of the index.
 
 Two things here are not obvious:
 
@@ -33,7 +46,8 @@ Two things here are not obvious:
   about 10 times slower, which makes live recording impractical on a 4-core box. So
   `capture_streams.js` first records the real streamed answers with their timing while nothing else
   is running, and `record_web.js` replays them through a small proxy that forwards everything else
-  to the real app. The last caption of the video says so. Keep that caption.
+  (including the upload and the removal) to the real app. The last caption of the video says so,
+  and says that the PDF steps were live. Keep that caption.
 
 ## Command-line demo (a replay of real output)
 
