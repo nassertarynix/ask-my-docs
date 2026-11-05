@@ -35,10 +35,11 @@ the portfolio demo corpus described below.)
 
 <img src="docs/demo/web_demo.gif" alt="Phone-sized demo of the web interface" width="300">
 
-- [Mobile demo, 64 s (MP4)](docs/demo/web_demo.mp4): a recording of the web app at phone size
+- [Mobile demo, 89 s (MP4)](docs/demo/web_demo.mp4): a recording of the web app at phone size
   in a real browser: ask a question, watch the passages appear first and the answer stream in,
   swipe the passages, open a cited passage, get a refusal for a question the documents cannot
-  answer, and see the light and dark themes. The taps and captions were added for the video.
+  answer, get an answer from a PDF with its page cited, and see the light and dark themes. The
+  notes about the author are indexed together with the sample policy PDF. The taps and captions were added for the video.
   The model's answers were captured from a real run and replayed during the recording (a
   phone-resolution recording leaves a CPU-only model too little CPU to answer at normal speed),
   and the video says so in its last caption. The app and its retrieval are the real ones.

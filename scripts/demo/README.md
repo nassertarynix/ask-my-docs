@@ -9,7 +9,8 @@ Playwright (`require('playwright')`), and `ffmpeg`.
 ## Mobile demo (a real browser, with replayed answers)
 
 ```bash
-python -m ask_my_docs ingest portfolio_docs
+mkdir demo_docs && cp portfolio_docs/*.md sample_docs/orbit_labs_expenses.pdf demo_docs/   # notes + a PDF
+python -m ask_my_docs ingest demo_docs
 python -m ask_my_docs serve --port 8000 &
 node scripts/demo/capture_streams.js streams.json        # real answers + timing; run with the CPU idle
 node scripts/demo/record_web.js out/ streams.json         # writes out/*.webm

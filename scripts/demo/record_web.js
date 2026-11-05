@@ -179,14 +179,36 @@ function startProxy(target) {
   await cap('…and it says so, instead of making something up.');
   await sleep(5200);
 
-  // ---- 7. options
+  // ---- 7. a PDF: the answer cites the page
+  await cap('It reads PDFs too, and cites the page. A sample policy PDF is indexed here next to the notes.');
+  await tap('#new-chat');
+  await sleep(1400);
+  await tap('#question');
+  await loc('#question').pressSequentially('What is the meal allowance while travelling?', { delay: 62 });
+  await sleep(800);
+  await tap('#submit');
+  await page.waitForSelector('.turn .src');
+  await answered();
+  await page.evaluate(() => document.querySelector('.turn .rail').scrollIntoView({ block: 'center', behavior: 'smooth' }));
+  await sleep(1200);
+  await cap('The passage card shows its page: p. 2 of the PDF.');
+  await sleep(4200);
+  await scrollPage('end');
+  await sleep(900);
+  await cap('Tap the citation to read that page.');
+  await tap('.answer .cite');
+  await sleep(4800);
+  await tap('#sheet-close');
+  await sleep(700);
+
+  // ---- 8. options
   await cap('Options: choose how many passages to read, or show only the passages.');
   await tap('#opt-btn');
   await sleep(4200);
   await tap('#opt-btn');
   await sleep(700);
 
-  // ---- 8. themes, and the disclosure
+  // ---- 9. themes, and the disclosure
   await cap('It follows your phone’s light or dark setting.');
   await page.emulateMedia({ colorScheme: THEME === 'dark' ? 'light' : 'dark' });
   await sleep(3600);

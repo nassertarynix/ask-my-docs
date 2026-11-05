@@ -7,7 +7,8 @@
 // at true speed, and replayed at their original timing.
 const fs = require('fs');
 const BASE = (process.env.DEMO_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
-const QUESTIONS = ['What does Al-Nasser do at Tarynix?', 'Does Al-Nasser know Rust?'];
+const QUESTIONS = ['What does Al-Nasser do at Tarynix?', 'Does Al-Nasser know Rust?',
+  'What is the meal allowance while travelling?'];   // the last one is answered from a PDF
 
 async function capture(question) {
   const started = Date.now();
