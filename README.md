@@ -117,11 +117,39 @@ Designed phone first, and it scales up to a centred column on larger screens:
   Then the answer streams in, with the passages it cited marked.
 - Tap a citation or a card to read the whole passage in a bottom sheet.
 - A question the documents cannot answer gets a distinct "Not in your documents" answer.
+- **Add your own documents from the page.** Tap the "N docs" pill, or "Add documents" when
+  nothing is indexed yet, to open *Your documents*. Pick Markdown, text or PDF files (on a
+  desktop you can also drop them anywhere on the page). Each file is read, embedded and added to
+  the live index straight away, with a progress line per file that says what was added or why a
+  file was refused. You can start with no index at all and build one entirely from the page.
+  Uploading a file with the same name replaces it, and *Remove* deletes a document that was added
+  this way (it asks for a second tap to confirm).
 - Light and dark themes follow the device setting. The page needs no internet: its two fonts
   (Instrument Sans and Newsreader, both SIL Open Font License, licences included) are served
   by the app itself.
 
 <img src="docs/screenshot-desktop.png" alt="The same interface on a desktop screen" width="640">
+
+![Adding documents on a phone: the empty state, the Your documents sheet with per-file results (added, and refused with a reason), and the same sheet in dark mode](docs/screenshot-upload.png)
+
+**Safety of adding documents.** The server has no login, and adding files is a way to write to
+disk, so it is locked down:
+
+- It is only allowed when the server is bound to this machine (the default). With `--host 0.0.0.0`
+  or any other address it is turned off, and `serve --no-uploads` turns it off explicitly.
+- A request is accepted only from the app's own page on `localhost` or `127.0.0.1`. The server
+  checks the `Host` and `Origin` headers, so another website open in your browser cannot send
+  files to it, and a hostile name pointing at your machine (DNS rebinding) is refused.
+- Only a plain file name with a supported extension is accepted (no folders, no hidden files), the
+  content must match the type (a `.pdf` must look like a PDF), and files over `MAX_UPLOAD_MB`
+  (20 MB by default) are cut off while being received.
+- A file that fails (damaged, scanned, wrong type, model server down) leaves nothing behind, and
+  a failed replacement keeps the previous version. The index is saved atomically.
+
+Files added from the page are kept in `index/uploads` on the computer running the app, and
+nowhere else. Running `ingest` rebuilds the index from the folder you give it, so documents
+added from the page are no longer in the index afterwards (their files stay in `index/uploads`;
+add them again from the page). Indexing a large PDF on a CPU can take a minute or more.
 
 It binds to `127.0.0.1` by default and has no login, so keep it local; do not expose it to a
 network as-is.
@@ -204,6 +232,7 @@ All settings are environment variables; the defaults target local Ollama.
 | `EMBED_DOC_PREFIX` / `EMBED_QUERY_PREFIX` | `search_document: ` / `search_query: ` | Task prefixes used by nomic; set to empty for other models |
 | `CHUNK_SIZE` / `CHUNK_OVERLAP` | `800` / `120` | Chunking, in characters |
 | `TOP_K` | `4` | Passages retrieved per question |
+| `MAX_UPLOAD_MB` | `20` | Largest file the web page accepts for upload |
 | `TEMPERATURE` | `0` | Sampling temperature; 0 makes answers repeatable |
 | `INDEX_DIR` | `index` | Where the index is saved |
 
@@ -217,16 +246,18 @@ ask_my_docs/
   chunking.py     paragraph-aware chunking with overlap
   embeddings.py   embedding client (batched, L2-normalised)
   store.py        in-memory vector store, saved as JSON + NumPy
-  ingest.py       folder -> chunks -> vectors -> index
+  ingest.py       folder -> chunks -> vectors -> index (reads .md, .txt and .pdf)
+  documents.py    add and remove documents in a running index (the page's upload feature)
   rag.py          the retrieval step, shared by CLI and web
   generate.py     grounded prompt + streamed answer
   evaluate.py     scores retrieval and answers against a question file
   cli.py          `ingest`, `ask`, `evaluate` and `serve` commands
-  web.py          FastAPI app: status + streaming ask endpoint
+  web.py          FastAPI app: status, streaming ask, and add/remove document endpoints
   static/         mobile-first frontend (plain HTML/CSS/JS, no build step) and its fonts
 sample_docs/      fictional company handbook, including a PDF (generic demo and tests)
 docs/             screenshots and demo videos
 scripts/demo/     scripts that record the demo videos
+scripts/          UI checks that drive a real browser (ui_smoke.js, ui_upload_flow.js)
 portfolio_docs/   documents about the author, built from public portfolio data
 evals/            question sets for the `evaluate` command
 tests/            unit tests: chunking, search, persistence, prompts, web API (no Ollama needed)

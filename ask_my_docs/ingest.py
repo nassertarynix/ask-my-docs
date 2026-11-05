@@ -90,8 +90,11 @@ def _pdf_title(reader: PdfReader, path: Path) -> str:
     return meta_title or re.sub(r"[_\-]+", " ", path.stem).strip()
 
 
-def read_pdf(path: Path) -> tuple[str, list[Page]]:
-    """Return (title, pages with text). Raises UnreadablePdf if the file cannot be read."""
+def read_pdf(path: Path, name: Path | None = None) -> tuple[str, list[Page]]:
+    """Return (title, pages with text). Raises UnreadablePdf if the file cannot be read.
+
+    `name` is what the file is called for the title fallback, when `path` is a temporary name.
+    """
     try:
         reader = PdfReader(str(path))
         if reader.is_encrypted and not reader.decrypt(""):
@@ -101,11 +104,29 @@ def read_pdf(path: Path) -> tuple[str, list[Page]]:
             text = reflow_pdf_text(page.extract_text() or "")
             if text.strip():
                 pages.append(Page(number, text))
-        return _pdf_title(reader, path), pages
+        return _pdf_title(reader, name or path), pages
     except UnreadablePdf:
         raise
     except Exception as error:  # pypdf raises many different errors for damaged files
         raise UnreadablePdf(f"it could not be read ({type(error).__name__})") from error
+
+
+def read_document(path: Path, source: str) -> Document | None:
+    """Read one file into a Document, the same way for `ingest` and for uploads.
+
+    Returns None for an empty text file. Raises UnreadablePdf for a PDF that cannot be used
+    (the message says why, in plain words).
+    """
+    if path.suffix.lower() == ".pdf":
+        title, pages = read_pdf(path, Path(source))
+        if not pages:
+            raise UnreadablePdf("it has no text to read. It may be a scan; reading text from images "
+                                "(OCR) is not supported")
+        return Document(source, title, pages)
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    if not text.strip():
+        return None
+    return Document(source, extract_title(text), [Page(None, text)])
 
 
 def load_documents(folder: Path) -> tuple[list[Document], list[str]]:
@@ -115,26 +136,29 @@ def load_documents(folder: Path) -> tuple[list[Document], list[str]]:
     documents: list[Document] = []
     warnings: list[str] = []
     for path in sorted(folder.rglob("*")):
-        suffix = path.suffix.lower()
-        if not path.is_file() or suffix not in SUPPORTED_SUFFIXES:
+        if not path.is_file() or path.suffix.lower() not in SUPPORTED_SUFFIXES:
             continue
         source = str(path.relative_to(folder))
-        if suffix == ".pdf":
-            try:
-                title, pages = read_pdf(path)
-            except UnreadablePdf as error:
-                warnings.append(f"Skipped {source}: {error}.")
-                continue
-            if not pages:
-                warnings.append(f"Skipped {source}: it has no text to read. It may be a scan; "
-                                "reading text from images (OCR) is not supported.")
-                continue
-            documents.append(Document(source, title, pages))
-        else:
-            text = path.read_text(encoding="utf-8", errors="ignore")
-            if text.strip():
-                documents.append(Document(source, extract_title(text), [Page(None, text)]))
+        try:
+            document = read_document(path, source)
+        except UnreadablePdf as error:
+            warnings.append(f"Skipped {source}: {error}.")
+            continue
+        if document:
+            documents.append(document)
     return documents, warnings
+
+
+def chunks_for(document: Document) -> list[Chunk]:
+    """Split a document into chunks, page by page, so every chunk belongs to exactly one page."""
+    chunks: list[Chunk] = []
+    index = 0
+    for page in document.pages:
+        for piece in chunk_text(page.text, config.CHUNK_SIZE, config.CHUNK_OVERLAP):
+            chunks.append(Chunk(text=piece, source=document.source, index=index,
+                                title=document.title, page=page.number))
+            index += 1
+    return chunks
 
 
 def build_index(folder: Path, on_warning: Callable[[str], None] | None = None) -> VectorStore:
@@ -145,15 +169,6 @@ def build_index(folder: Path, on_warning: Callable[[str], None] | None = None) -
     if not documents:
         raise ValueError(f"No readable .md, .txt or .pdf files with text found in '{folder}'.")
 
-    chunks: list[Chunk] = []
-    for document in documents:
-        index = 0
-        for page in document.pages:
-            # Chunk page by page, so every chunk belongs to exactly one page and can cite it.
-            for piece in chunk_text(page.text, config.CHUNK_SIZE, config.CHUNK_OVERLAP):
-                chunks.append(Chunk(text=piece, source=document.source, index=index,
-                                    title=document.title, page=page.number))
-                index += 1
-
+    chunks = [chunk for document in documents for chunk in chunks_for(document)]
     vectors = embed([c.embedding_text for c in chunks], prefix=config.DOC_PREFIX)
     return VectorStore(chunks, vectors)

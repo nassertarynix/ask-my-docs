@@ -58,8 +58,13 @@ def cmd_serve(args: argparse.Namespace) -> int:
 
     from .web import create_app
 
+    on_this_machine = args.host in {"127.0.0.1", "localhost", "::1"}
+    uploads = on_this_machine and not args.no_uploads
     print(f"Serving Ask My Docs at http://{args.host}:{args.port}  (Ctrl+C to stop)")
-    uvicorn.run(create_app(), host=args.host, port=args.port, log_level="warning")
+    if not on_this_machine:
+        print("Warning: the server is reachable from other machines and has no login. "
+              "Adding documents from the page is turned off.", file=sys.stderr)
+    uvicorn.run(create_app(uploads_enabled=uploads), host=args.host, port=args.port, log_level="warning")
     return 0
 
 
@@ -94,6 +99,8 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Address to bind (default: %(default)s; local only)")
     serve.add_argument("--port", type=int, default=8000,
                        help="Port to listen on (default: %(default)s)")
+    serve.add_argument("--no-uploads", action="store_true",
+                       help="Do not let the page add or remove documents")
     serve.set_defaults(func=cmd_serve)
     return parser
 

@@ -179,6 +179,48 @@ dialog.sheet[open]::backdrop{animation:fade .28s ease-out}
 .passage{margin:0;padding:16px var(--gutter-r) calc(24px + env(safe-area-inset-bottom,0px)) var(--gutter);overflow-y:auto;overscroll-behavior:contain;
   font:400 18.5px/1.62 var(--read);white-space:pre-wrap;overflow-wrap:anywhere}
 
+/* documents: the row on the welcome screen, the "Your documents" sheet, the drop overlay */
+.pill{cursor:pointer;min-height:40px;padding:0 13px}
+.pill:active{background:var(--surface-2)}
+.pill.none i{background:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:0 20px;border:0;border-radius:14px;
+  background:var(--brand);color:var(--brand-ink);font:600 16px/1 var(--ui)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.docrow{width:100%;min-height:56px;margin-top:22px;display:flex;align-items:center;gap:12px;padding:12px 16px;text-align:left;background:transparent;
+  border:1px dashed var(--line);border-radius:16px;color:var(--muted);font:500 15.5px/1.3 var(--ui)}
+.docrow .icon{color:var(--brand)}
+.docrow .chev{margin-left:auto;color:var(--muted)}
+.empty{margin-top:26px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:20px}
+.empty h2{margin:0 0 6px;font:650 22px/1.2 var(--ui);letter-spacing:-.02em}
+.empty p{margin:0 0 16px;color:var(--muted)}
+.docs-body{padding:6px var(--gutter-r) calc(24px + env(safe-area-inset-bottom,0px)) var(--gutter);overflow-y:auto;overscroll-behavior:contain}
+.dropzone{width:100%;min-height:88px;display:flex;align-items:center;gap:14px;padding:14px 16px;text-align:left;background:var(--brand-soft);
+  border:2px dashed var(--brand);border-radius:18px;color:var(--ink)}
+.dropzone:disabled{opacity:.55;cursor:wait}
+.dropzone .icon{width:28px;height:28px;color:var(--brand)}
+.dropzone b{display:block;font:650 17px/1.2 var(--ui)}
+.dropzone small{display:block;margin-top:3px;font-size:13.5px;color:var(--muted)}
+.queue{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.queue li{display:grid;gap:2px;padding:10px 12px;border-radius:12px;background:var(--surface-2);font-size:14.5px}
+.queue .q-name{font-weight:600;overflow-wrap:anywhere}
+.queue .q-state{color:var(--muted);overflow-wrap:anywhere}
+.queue li.ok .q-state{color:var(--ok)}
+.queue li.err{background:var(--bad-bg)} .queue li.err .q-state{color:var(--bad)}
+.docs{list-style:none;margin:0;padding:0}
+.doc{display:flex;align-items:center;gap:12px;min-height:60px;padding:8px 0;border-bottom:1px solid var(--line)}
+.doc:last-child{border-bottom:0}
+.ext{flex:none;min-width:42px;text-align:center;padding:6px 0;border-radius:8px;background:var(--brand-soft);color:var(--brand);font:700 11px/1 var(--mono);letter-spacing:.04em}
+.doc-main{min-width:0;flex:1;display:grid}
+.doc-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-meta{font-size:13px;color:var(--muted)}
+.doc-remove{flex:none;min-height:44px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:600 14px/1 var(--ui)}
+.doc-remove:hover{background:var(--surface-2);color:var(--ink)}
+.doc-remove.armed{background:var(--bad-bg);color:var(--bad)}
+.docs-note{margin:14px 0 0;font-size:13px;color:var(--muted)}
+.dropover{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 82%,transparent);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:3px dashed var(--brand);margin:12px;border-radius:24px;
+  font:650 22px/1.3 var(--ui);color:var(--brand);pointer-events:none}
+
 @media (min-width:720px){
   .thread,.dock{padding-left:24px;padding-right:24px}
   .top{padding-left:24px;padding-right:12px}
@@ -202,6 +244,8 @@ dialog.sheet[open]::backdrop{animation:fade .28s ease-out}
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a1 1 0 00-1 1v16a1 1 0 001 1h10a1 1 0 001-1V8zM14 3v5h5M9 13h6M9 17h6"/></symbol>
 </svg>
 
 <div class="app">
@@ -210,7 +254,7 @@ dialog.sheet[open]::backdrop{animation:fade .28s ease-out}
       <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#3f4bde"/><rect x="8" y="7" width="16" height="3" rx="1.5" fill="#fff"/><rect x="7" y="13" width="18" height="6" rx="1.5" fill="#ffe14d"/><rect x="8" y="22" width="10" height="3" rx="1.5" fill="#fff"/></svg>
       Ask My Docs
     </div>
-    <span class="pill" id="status" role="status"><i></i><span id="status-text">Checking</span></span>
+    <button class="pill" id="status" type="button" aria-haspopup="dialog" aria-label="Your documents"><i></i><span id="status-text">Checking</span></button>
     <button class="icon-btn" id="new-chat" type="button" aria-label="Start a new chat" hidden><svg class="icon"><use href="#i-plus"/></svg></button>
   </header>
 
@@ -223,10 +267,16 @@ dialog.sheet[open]::backdrop{animation:fade .28s ease-out}
         <p class="eyebrow" style="margin-top:28px">Try asking</p>
         <ul class="examples" id="examples"></ul>
       </div>
-      <details class="indexed" id="indexed" hidden>
-        <summary id="indexed-summary">Indexed documents</summary>
-        <ul class="doc-list" id="doc-list"></ul>
-      </details>
+      <button class="docrow" id="docs-row" type="button" aria-haspopup="dialog" hidden>
+        <svg class="icon"><use href="#i-file"/></svg>
+        <span id="docs-row-text">Your documents</span>
+        <svg class="icon chev"><use href="#i-chevron"/></svg>
+      </button>
+      <div class="empty" id="empty" hidden>
+        <h2>Add your documents</h2>
+        <p id="empty-text"></p>
+        <button class="btn" id="empty-add" type="button"><svg class="icon"><use href="#i-upload"/></svg>Add documents</button>
+      </div>
     </section>
   </main>
 
@@ -261,6 +311,28 @@ dialog.sheet[open]::backdrop{animation:fade .28s ease-out}
   <div class="passage" id="sheet-text"></div>
 </dialog>
 
+<dialog class="sheet" id="docs-sheet" aria-labelledby="docs-title">
+  <div class="grab" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <div class="txt"><h2 id="docs-title">Your documents</h2><p id="docs-sub"></p></div>
+    <button class="icon-btn" id="docs-close" type="button" aria-label="Close documents"><svg class="icon"><use href="#i-close"/></svg></button>
+  </div>
+  <div class="docs-body">
+    <div id="uploader" hidden>
+      <input type="file" id="file-input" multiple accept=".md,.txt,.pdf,text/markdown,text/plain,application/pdf" hidden>
+      <button type="button" class="dropzone" id="pick">
+        <svg class="icon"><use href="#i-upload"/></svg>
+        <span><b>Add documents</b><small id="pick-hint"></small></span>
+      </button>
+      <ul class="queue" id="queue" aria-live="polite"></ul>
+    </div>
+    <p class="eyebrow" style="margin-top:22px">In the index</p>
+    <ul class="docs" id="doc-items"></ul>
+    <p class="docs-note" id="docs-note"></p>
+  </div>
+</dialog>
+<div class="dropover" id="dropover" hidden>Drop to add documents</div>
+
 <noscript><p style="padding:16px">Ask My Docs needs JavaScript.</p></noscript>
 <script>
 "use strict";
@@ -270,11 +342,14 @@ const els = {
   form: $("#form"), question: $("#question"), submit: $("#submit"), thread: $("#thread"), welcome: $("#welcome"),
   status: $("#status"), statusText: $("#status-text"), newChat: $("#new-chat"), optBtn: $("#opt-btn"), options: $("#options"),
   seg: $("#seg"), useLlm: $("#use-llm"), examplesBlock: $("#examples-block"), examples: $("#examples"),
-  indexed: $("#indexed"), indexedSummary: $("#indexed-summary"), docList: $("#doc-list"),
+  docsRow: $("#docs-row"), docsRowText: $("#docs-row-text"), empty: $("#empty"), emptyText: $("#empty-text"), emptyAdd: $("#empty-add"),
+  docsSheet: $("#docs-sheet"), docsSub: $("#docs-sub"), docsClose: $("#docs-close"), uploader: $("#uploader"),
+  fileInput: $("#file-input"), pick: $("#pick"), pickHint: $("#pick-hint"), queue: $("#queue"), docItems: $("#doc-items"),
+  docsNote: $("#docs-note"), dropover: $("#dropover"),
   sheet: $("#sheet"), sheetNum: $("#sheet-num"), sheetTitle: $("#sheet-title"), sheetMeta: $("#sheet-meta"),
   sheetBar: $("#sheet-bar"), sheetText: $("#sheet-text"), sheetClose: $("#sheet-close"),
 };
-const state = { info: null, topK: 4, busy: false };
+const state = { info: null, topK: 4, busy: false, uploading: false, segmentsBuilt: false };
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Example questions for the two bundled demo corpora, keyed by a file that identifies each one.
@@ -503,7 +578,7 @@ async function ask(question) {
 
 function setBusy(on) {
   state.busy = on;
-  els.submit.disabled = on;
+  els.submit.disabled = on || !(state.info && state.info.indexed);
   els.thread.setAttribute("aria-busy", String(on));
 }
 
@@ -551,39 +626,184 @@ function buildSegments(selected) {
   });
 }
 
-/* ---------- start-up ---------- */
+/* ---------- documents: list, add, remove ---------- */
+const MB = 1024 * 1024;
+const uploadsOn = () => !!(state.info && state.info.uploads && state.info.uploads.enabled);
+const extOf = (name) => (name.match(/\.[^.]+$/) || [""])[0].toLowerCase();
+const plural = (n, word) => n + " " + word + (n === 1 ? "" : "s");
+
+function openDocs() {
+  renderDocs();
+  if (!els.docsSheet.open) els.docsSheet.showModal();
+}
+els.docsClose.addEventListener("click", () => els.docsSheet.close());
+els.docsSheet.addEventListener("click", (event) => { if (event.target === els.docsSheet) els.docsSheet.close(); });
+els.status.addEventListener("click", () => { if (state.info) openDocs(); });
+els.docsRow.addEventListener("click", openDocs);
+els.emptyAdd.addEventListener("click", () => { openDocs(); els.fileInput.click(); });
+els.pick.addEventListener("click", () => els.fileInput.click());
+els.fileInput.addEventListener("change", () => uploadFiles(els.fileInput.files));
+
+function renderDocs() {
+  const info = state.info;
+  if (!info) return;
+  const on = uploadsOn();
+  els.uploader.hidden = !on;
+  if (on) {
+    els.pickHint.textContent = "Markdown, text or PDF. Up to " + info.uploads.max_mb + " MB each." +
+      (matchMedia("(pointer: fine)").matches ? " You can also drop files anywhere on this page." : "");
+  }
+  const details = info.document_details || [];
+  els.docsSub.textContent = details.length ? plural(details.length, "document") + " · " + plural(info.chunks, "passage") : "Nothing added yet";
+  els.docItems.replaceChildren();
+  if (!details.length) {
+    const none = el("li", "doc"); none.append(el("span", "doc-meta", "No documents yet."));
+    els.docItems.append(none);
+  }
+  details.forEach((doc) => {
+    const item = el("li", "doc");
+    item.append(el("span", "ext", extOf(doc.name).slice(1).toUpperCase() || "FILE"));
+    const main = el("div", "doc-main");
+    main.append(el("span", "doc-name", doc.name),
+      el("span", "doc-meta", plural(doc.chunks, "passage") + (doc.pages ? " · " + plural(doc.pages, "page") : "")));
+    item.append(main);
+    if (doc.uploaded && on) {
+      const remove = el("button", "doc-remove", "Remove");
+      remove.type = "button";
+      remove.setAttribute("aria-label", "Remove " + doc.name);
+      remove.addEventListener("click", () => removeDoc(doc.name, remove));
+      item.append(remove);
+    }
+    els.docItems.append(item);
+  });
+  els.docsNote.textContent = on
+    ? "Files you add are saved in the index folder of the computer running this app, and nowhere else. Adding a file with the same name replaces it. Documents from the ingest command cannot be removed here."
+    : "Adding documents from this page is turned off. Use the ingest command to change what is indexed.";
+}
+
+function queueItem(name) {
+  const li = el("li");
+  const state_ = el("span", "q-state");
+  li.append(el("span", "q-name", name), state_);
+  els.queue.append(li);
+  const set = (cls, text) => { li.className = cls; state_.textContent = text; };
+  return { busy: (text) => set("busy", text), ok: (text) => set("ok", text), fail: (text) => set("err", text) };
+}
+
+function checkFile(file) {
+  const types = state.info.uploads.types;
+  if (!types.includes(extOf(file.name))) return "Not a supported type. Use " + types.join(", ") + ".";
+  if (file.size === 0) return "The file is empty.";
+  if (file.size > state.info.uploads.max_mb * MB) return "Larger than " + state.info.uploads.max_mb + " MB.";
+  return "";
+}
+
+async function uploadFiles(fileList) {
+  const files = [...fileList];
+  els.fileInput.value = "";  // so choosing the same file again still counts as a change
+  if (!files.length || state.uploading || !uploadsOn()) return;
+  state.uploading = true;
+  els.pick.disabled = true;
+  els.queue.replaceChildren();  // show only this batch
+  for (const file of files) {
+    const item = queueItem(file.name);
+    const problem = checkFile(file);
+    if (problem) { item.fail(problem); continue; }
+    item.busy(file.size > 2 * MB ? "Reading and indexing. Large files can take a minute." : "Reading and indexing");
+    try {
+      const response = await fetch("/api/documents?name=" + encodeURIComponent(file.name), {
+        method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: file,
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(typeof body.detail === "string" ? body.detail : "Upload failed (" + response.status + ")");
+      applyStatus(body);
+      const added = body.added;
+      item.ok((added.replaced ? "Replaced: " : "Added: ") + plural(added.chunks, "passage") + (added.pages ? " from " + plural(added.pages, "page") : ""));
+    } catch (error) {
+      item.fail(error.message || "Upload failed.");
+    }
+  }
+  state.uploading = false;
+  els.pick.disabled = false;
+  renderDocs();
+}
+
+async function removeDoc(name, button) {
+  if (!button.classList.contains("armed")) {  // the first tap asks, the second confirms
+    button.classList.add("armed");
+    button.textContent = "Tap to confirm";
+    setTimeout(() => { button.classList.remove("armed"); button.textContent = "Remove"; }, 3500);
+    return;
+  }
+  button.disabled = true;
+  try {
+    const response = await fetch("/api/documents/" + encodeURIComponent(name), { method: "DELETE" });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(typeof body.detail === "string" ? body.detail : "Could not remove it (" + response.status + ")");
+    applyStatus(body);
+    renderDocs();
+  } catch (error) {
+    button.disabled = false;
+    queueItem(name).fail(error.message);
+  }
+}
+
+// Dropping files anywhere on the page adds them (desktop). Only when uploads are on and files are being dragged.
+let dragDepth = 0;
+const draggingFiles = (event) => [...((event.dataTransfer && event.dataTransfer.types) || [])].includes("Files");
+addEventListener("dragenter", (event) => { if (uploadsOn() && draggingFiles(event)) { dragDepth++; els.dropover.hidden = false; } });
+addEventListener("dragleave", (event) => { if (uploadsOn() && draggingFiles(event) && --dragDepth <= 0) { dragDepth = 0; els.dropover.hidden = true; } });
+addEventListener("dragover", (event) => { if (uploadsOn() && draggingFiles(event)) event.preventDefault(); });
+addEventListener("drop", (event) => {
+  if (!uploadsOn() || !draggingFiles(event)) return;
+  event.preventDefault();
+  dragDepth = 0;
+  els.dropover.hidden = true;
+  openDocs();
+  uploadFiles(event.dataTransfer.files);
+});
+
+/* ---------- start-up and status ---------- */
+function applyStatus(info) {
+  state.info = info;
+  if (!state.segmentsBuilt) { state.topK = info.top_k || 4; buildSegments(state.topK); state.segmentsBuilt = true; }
+  const n = info.documents.length;
+  els.status.classList.remove("bad");
+  els.status.classList.toggle("none", !info.indexed);
+  els.statusText.textContent = info.indexed ? plural(n, "doc") : "No documents";
+  if (info.indexed) els.statusText.append(el("span", "more", " · " + plural(info.chunks, "passage")));
+
+  // The welcome section is hidden once a conversation starts, unless there is nothing to ask about:
+  // then it comes back, so the person is told to add documents instead of facing a dead send button.
+  els.welcome.hidden = info.indexed && !!els.thread.querySelector(".turn");
+  els.question.placeholder = info.indexed ? "Ask about your documents" : "Add documents to start asking";
+  els.docsRow.hidden = !info.indexed;
+  els.docsRowText.textContent = "Your documents (" + n + ")";
+  els.empty.hidden = info.indexed;
+  els.emptyText.textContent = uploadsOn()
+    ? "Add Markdown, text or PDF files. They are read on this device, and you can then ask questions about them."
+    : "Index some documents first, then reload this page. In a terminal: python -m ask_my_docs ingest <folder>";
+  els.emptyAdd.hidden = !uploadsOn();
+  els.submit.disabled = state.busy || !info.indexed;
+
+  els.examples.replaceChildren();
+  const key = Object.keys(EXAMPLE_SETS).find((file) => info.documents.includes(file));
+  els.examplesBlock.hidden = !(info.indexed && key);
+  if (info.indexed && key) {
+    EXAMPLE_SETS[key].forEach((text) => {
+      const item = el("li");
+      const button = el("button", "", text); button.type = "button";
+      button.append(icon("chevron"));
+      button.addEventListener("click", () => { if (!state.busy) ask(text); });
+      item.append(button);
+      els.examples.append(item);
+    });
+  }
+}
+
 async function loadStatus() {
   try {
-    const info = await (await fetch("/api/status")).json();
-    state.info = info;
-    state.topK = info.top_k || 4;
-    buildSegments(state.topK);
-    if (!info.indexed) {
-      els.status.classList.add("bad");
-      els.statusText.textContent = "No index yet";
-      const help = el("p", "note", "Index some documents first, then reload this page. In a terminal: python -m ask_my_docs ingest <folder>");
-      help.style.marginTop = "20px";
-      els.welcome.append(help);
-      els.submit.disabled = true;
-      return;
-    }
-    els.statusText.textContent = info.documents.length + " docs";
-    els.statusText.append(el("span", "more", " · " + info.chunks + " passages"));
-    els.indexedSummary.textContent = "Indexed documents (" + info.documents.length + ")";
-    info.documents.forEach((name) => els.docList.append(el("li", "", name)));
-    els.indexed.hidden = false;
-    const key = Object.keys(EXAMPLE_SETS).find((file) => info.documents.includes(file));
-    if (key) {
-      EXAMPLE_SETS[key].forEach((text) => {
-        const item = el("li");
-        const button = el("button", "", text); button.type = "button";
-        button.append(icon("chevron"));
-        button.addEventListener("click", () => { if (!state.busy) ask(text); });
-        item.append(button);
-        els.examples.append(item);
-      });
-      els.examplesBlock.hidden = false;
-    }
+    applyStatus(await (await fetch("/api/status")).json());
   } catch (error) {
     els.status.classList.add("bad");
     els.statusText.textContent = "Server not reachable";

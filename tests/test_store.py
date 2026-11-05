@@ -106,3 +106,55 @@ def test_page_numbers_survive_saving_and_old_indexes_still_load(tmp_path):
     (tmp_path / "chunks.json").write_text('[{"text": "old", "source": "a.md", "index": 0}]')
     np.save(tmp_path / "vectors.npy", np.zeros((1, 2), dtype=np.float32))
     assert VectorStore.load(tmp_path).chunks[0].page is None
+
+
+# --- changing a store ------------------------------------------------------------------
+
+def test_empty_store_searches_to_nothing():
+    assert len(VectorStore.empty()) == 0
+    assert VectorStore.empty().search(np.ones(2, dtype=np.float32)) == []
+
+
+def test_extended_adds_chunks_without_changing_the_original():
+    base = VectorStore([Chunk("a", "a.md", 0)], np.array([[1, 0]], dtype=np.float32))
+    bigger = base.extended([Chunk("b", "b.md", 0)], np.array([[0, 1]], dtype=np.float32))
+    assert len(base) == 1 and len(bigger) == 2
+    assert [c.source for c in bigger.chunks] == ["a.md", "b.md"]
+
+
+def test_extended_onto_an_empty_store_takes_the_new_vector_size():
+    store = VectorStore.empty().extended([Chunk("a", "a.md", 0)], np.ones((1, 5), dtype=np.float32))
+    assert store.vectors.shape == (1, 5)
+
+
+def test_extended_with_a_different_vector_size_is_refused():
+    base = VectorStore([Chunk("a", "a.md", 0)], np.ones((1, 2), dtype=np.float32))
+    with pytest.raises(ValueError, match="different model"):
+        base.extended([Chunk("b", "b.md", 0)], np.ones((1, 3), dtype=np.float32))
+
+
+def test_without_source_removes_only_that_document():
+    store = VectorStore([Chunk("a", "a.md", 0), Chunk("b", "b.md", 0), Chunk("a2", "a.md", 1)],
+                        np.eye(3, dtype=np.float32))
+    smaller = store.without_source("a.md")
+    assert [c.source for c in smaller.chunks] == ["b.md"] and smaller.vectors.shape == (1, 3)
+    assert len(store) == 3  # the original is untouched
+    assert len(store.without_source("b.md").without_source("a.md")) == 0
+
+
+def test_source_summaries_count_chunks_and_pages():
+    store = VectorStore([Chunk("a", "p.pdf", 0, page=1), Chunk("b", "p.pdf", 1, page=3), Chunk("c", "n.md", 0)],
+                        np.eye(3, dtype=np.float32))
+    assert store.source_summaries() == {"n.md": {"chunks": 1, "pages": None}, "p.pdf": {"chunks": 2, "pages": 3}}
+
+
+def test_save_leaves_no_temporary_files_and_round_trips(tmp_path):
+    store = VectorStore([Chunk("a", "a.md", 0)], np.array([[1, 0]], dtype=np.float32))
+    store.save(tmp_path)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["chunks.json", "vectors.npy"]
+    assert len(VectorStore.load(tmp_path)) == 1
+
+
+def test_an_empty_store_can_be_saved_and_loaded(tmp_path):
+    VectorStore.empty().save(tmp_path)
+    assert len(VectorStore.load(tmp_path)) == 0

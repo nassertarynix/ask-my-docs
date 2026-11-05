@@ -35,8 +35,9 @@ python -m ask_my_docs ask "..." --no-llm             # retrieval only, no chat m
 python -m ask_my_docs serve                          # web UI at http://127.0.0.1:8000
 python -m ask_my_docs evaluate evals/portfolio.json --retrieval-only   # fast
 python -m ask_my_docs evaluate evals/portfolio.json                    # also answers, ~5 min on CPU
-pytest -q                                            # 77 tests, no Ollama needed
+pytest -q                                            # 150 tests, no Ollama needed
 node scripts/ui_smoke.js                             # UI check in a phone-sized browser (server + Ollama running)
+node scripts/ui_upload_flow.js                       # adding/removing documents; start the server on an EMPTY INDEX_DIR first
 ```
 
 ## Architecture
@@ -46,12 +47,15 @@ ask_my_docs/
   config.py       settings from environment variables (defaults target local Ollama)
   chunking.py     chunk_text(): paragraphs -> lines -> sentences -> fixed windows, with overlap
   embeddings.py   embed(): OpenAI-compatible API, batched, L2-normalised float32 vectors
-  store.py        Chunk (text, source, index, title, page), Hit, VectorStore (cosine search; JSON + .npy)
-  ingest.py       load_documents() (md, txt, pdf), read_pdf(), reflow_pdf_text(), build_index()
+  store.py        Chunk (text, source, index, title, page), Hit, VectorStore (cosine search; extended() and
+                  without_source() return new stores; atomic save; JSON + .npy)
+  ingest.py       load_documents() (md, txt, pdf), read_document(), chunks_for(), read_pdf(), reflow_pdf_text(), build_index()
+  documents.py    add_document(), remove_document(), describe(), clean_name(): the page's upload logic (UploadError)
   rag.py          retrieve(): embed the question, return top-k hits
   generate.py     SYSTEM_PROMPT, build_messages(), stream_answer() (streams tokens)
   evaluate.py     load_cases(), run_evaluation(), format_report(); supports "known_issue"
-  web.py          FastAPI app: GET /, GET /api/status, POST /api/ask (newline-delimited JSON stream)
+  web.py          FastAPI app: GET /, GET /api/status, POST /api/ask (newline-delimited JSON stream),
+                  POST /api/documents?name= (raw file body), DELETE /api/documents/{name}
   cli.py          argparse commands: ingest, ask, evaluate, serve
   static/index.html   the whole frontend: mobile-first, plain HTML/CSS/JS, no build step
   static/fonts/       self-hosted Instrument Sans + Newsreader (woff2) and their OFL licences
@@ -61,7 +65,7 @@ evals/            JSON question sets for `evaluate` (portfolio.json, handbook.js
 tests/            pytest: chunking, store and prompt, ingest, web API (mocked), evaluation
 docs/             screenshot.png (phone), screenshot-desktop.png, demo/ (web_demo.mp4/.gif, terminal_demo.mp4)
 scripts/demo/     scripts that record the demo videos (see its README)
-scripts/ui_smoke.js   Playwright smoke test of the web UI (not part of pytest)
+scripts/ui_smoke.js, scripts/ui_upload_flow.js   Playwright checks of the web UI (not part of pytest)
 ```
 
 Data flow. **Ingest:** files -> chunk -> embed `title + chunk` with the `search_document: `
@@ -87,6 +91,16 @@ The web stream sends one JSON object per line: `{"type":"sources"}` first, then 
   citations and the headline), Instrument Sans for the interface and Newsreader for answers
   and passages. The app makes **no requests to other sites**, so fonts are self-hosted, and
   `tests/test_web.py` fails if the page references any `https://` resource.
+- **Adding documents from the page is locked down; keep it that way.** The server has no login and
+  an upload writes to disk, so: (1) it is allowed only when bound to this machine (`serve` turns it
+  off for any other `--host`, and `--no-uploads` turns it off); (2) mutating requests must pass
+  `_require_same_local_origin` (loopback `Host` stops DNS rebinding, `Origin` must match `Host`, so
+  another website in the same browser cannot post files); (3) names go through `clean_name` (no folders,
+  no dot files, supported type only) and content must match the type; (4) size is capped while the body
+  streams in (`MAX_UPLOAD_MB`); (5) a failed upload leaves nothing behind and a failed replacement keeps
+  the old version; (6) the index is saved atomically and changes happen under one lock. The endpoint takes
+  the raw file as the body (no `python-multipart` dependency). Uploads live in `<INDEX_DIR>/uploads`;
+  only those can be removed from the page; `ingest` rebuilds the index and drops them from it.
 - **Dependencies stay minimal:** `openai`, `numpy`, `fastapi`, `uvicorn`, `pypdf` (pure Python, for PDFs);
   dev: `pytest`, `httpx`.
 - **`TEMPERATURE` defaults to 0** so answers and evaluation results are repeatable.
@@ -130,6 +144,12 @@ The web stream sends one JSON object per line: `{"type":"sources"}` first, then 
   mobile-emulated browser with a 780x1848 viewport and a `width=390` meta viewport instead. At
   that size recording starves the CPU-only model, so answers are captured first and replayed.
   Details are in `scripts/demo/README.md`. Do not claim a demo is "live" if it was replayed.
+- **Prove security tests have teeth.** After writing the upload checks, each protection was switched
+  off in turn (origin check, size limit, name check) and the matching tests were confirmed to fail, then
+  restored. Do the same when adding a protection: a test that passes with the guard removed guards nothing.
+- **A dead end in the UI is a bug.** Removing every document mid-conversation hid the "add documents"
+  prompt (the welcome section was hidden) and left a disabled send button with no explanation. The
+  welcome/empty state now returns, and the input placeholder says what to do.
 - **A grid column stretched the whole page on phones.** The row of passage cards is wider
   than the screen on purpose (it scrolls sideways), and a grid item cannot shrink below its
   content by default, so the page became horizontally scrollable. Fix: `minmax(0, 1fr)` and

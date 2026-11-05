@@ -1,6 +1,7 @@
 """A tiny in-memory vector store, persisted as JSON + a NumPy file."""
 
 import json
+import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -41,6 +42,10 @@ class VectorStore:
     def __len__(self) -> int:
         return len(self.chunks)
 
+    @classmethod
+    def empty(cls) -> "VectorStore":
+        return cls([], np.zeros((0, 0), dtype=np.float32))
+
     def search(self, query_vector: np.ndarray, k: int = 4) -> list[Hit]:
         """Return the k chunks most similar to `query_vector` (unit length)."""
         if not self.chunks:
@@ -49,12 +54,47 @@ class VectorStore:
         top = np.argsort(-scores)[:k]
         return [Hit(self.chunks[i], float(scores[i])) for i in top]
 
+    # The two methods below return a new store and leave this one untouched, so a server can
+    # build the new version and then swap it in while other requests keep using the old one.
+
+    def extended(self, chunks: list[Chunk], vectors: np.ndarray) -> "VectorStore":
+        """A new store with `chunks` and their `vectors` added."""
+        if not self.chunks:
+            return VectorStore(list(chunks), vectors)
+        if len(chunks) and vectors.shape[1] != self.vectors.shape[1]:
+            raise ValueError(
+                "The new passages were embedded with a different model than the index. "
+                "Re-run 'ingest' to rebuild the index with the current model."
+            )
+        return VectorStore(self.chunks + list(chunks), np.vstack([self.vectors, vectors]))
+
+    def without_source(self, source: str) -> "VectorStore":
+        """A new store without any chunk that came from `source`."""
+        keep = [i for i, chunk in enumerate(self.chunks) if chunk.source != source]
+        if not keep:
+            return VectorStore.empty()
+        return VectorStore([self.chunks[i] for i in keep], self.vectors[keep])
+
+    def source_summaries(self) -> dict[str, dict]:
+        """Per document: how many passages it has and, for PDFs, how many pages."""
+        summaries: dict[str, dict] = {}
+        for chunk in self.chunks:
+            entry = summaries.setdefault(chunk.source, {"chunks": 0, "pages": None})
+            entry["chunks"] += 1
+            if chunk.page:
+                entry["pages"] = max(entry["pages"] or 0, chunk.page)
+        return dict(sorted(summaries.items()))
+
     def save(self, directory: Path) -> None:
+        """Write the index so that a crash part-way cannot leave a half-written file behind."""
         directory.mkdir(parents=True, exist_ok=True)
-        (directory / "chunks.json").write_text(
-            json.dumps([asdict(c) for c in self.chunks], indent=2), encoding="utf-8"
-        )
-        np.save(directory / "vectors.npy", self.vectors)
+        chunks_tmp = directory / "chunks.json.tmp"
+        vectors_tmp = directory / "vectors.npy.tmp"
+        chunks_tmp.write_text(json.dumps([asdict(c) for c in self.chunks], indent=2), encoding="utf-8")
+        with open(vectors_tmp, "wb") as handle:
+            np.save(handle, self.vectors)
+        os.replace(vectors_tmp, directory / "vectors.npy")
+        os.replace(chunks_tmp, directory / "chunks.json")
 
     @classmethod
     def load(cls, directory: Path) -> "VectorStore":
