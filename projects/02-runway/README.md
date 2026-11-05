@@ -1,5 +1,7 @@
 # Runway
 
+> **This folder holds the source as a zip.** Unzip `runway-source.zip`, then run the commands under "Run it" inside the unzipped folder. Everything else here (README, architecture, features page, screenshots, demo video) can be read without unzipping.
+
 A cash-flow forecast for a small business or a household. List what comes in and what goes out, and Runway shows
 the balance month by month, its lowest point, and **the date the money runs out**. Switch an item off to ask
 "what if?" and the answer changes at once.
@@ -44,7 +46,7 @@ npm run build      # static files in dist/ (base "./", works from any folder)
 
 The first `npm run e2e` needs a browser: `npx playwright install chromium`.
 
-## Structure
+## Structure (more in [ARCHITECTURE.md](ARCHITECTURE.md))
 
 ```
 src/domain/   dates.ts, forecast.ts, money.ts, data.ts (no React, no browser APIs)

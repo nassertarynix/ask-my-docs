@@ -1,5 +1,7 @@
 # MiniERP
 
+> **This folder holds the source as a zip.** Unzip `minierp-source.zip`, then run the commands under "Run it" inside the unzipped folder. Everything else here (README, architecture, features page, screenshots, demo video) can be read without unzipping.
+
 A small business-management app (products, stock, sales, purchases, invoices, payments and reports) that
 runs **entirely in the browser**. There is no server and no account: the data lives in a real **SQLite**
 database compiled to WebAssembly, saved in the browser's IndexedDB. Open it, load the demo business, and
@@ -50,7 +52,7 @@ npm run build        # static files in dist/ (base "./", so any folder or sub-pa
 
 The first `npm run e2e` needs a browser: `npx playwright install chromium`.
 
-## How it is built
+## How it is built (more in [ARCHITECTURE.md](ARCHITECTURE.md))
 
 ```
 src/domain/   the business: schema + migrations, money, stock, products, contacts, sales, purchases, reports, seed data, CSV
