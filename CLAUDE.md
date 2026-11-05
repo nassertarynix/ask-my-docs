@@ -18,8 +18,9 @@ Things to know about the owner's situation:
 - The owner **does not intend to run the project locally**. The demo videos in `docs/demo/`
   are the project's demo; the owner adds a portfolio card linking to the repo by hand.
 - The owner's pronouns are not stated: avoid pronouns for the owner in docs and messages.
-- A separate private list of mistakes on the owner's portfolio website exists outside this
-  repo. Do not copy it into this public repo.
+- The list of fixes for the owner's portfolio website (and the READMEs of the projects it shows) is
+  `PORTFOLIO_WEBSITE_FIXES.md` in the repo root. It was added at the owner's request so it can be read
+  from anywhere. It is about the portfolio, not this project: keep it accurate and tick items off as they are done.
 
 ## Commands
 
@@ -64,6 +65,7 @@ portfolio_docs/   documents about the owner, built from the public portfolio and
 evals/            JSON question sets for `evaluate` (portfolio.json, handbook.json)
 tests/            pytest: chunking, store and prompt, ingest, web API (mocked), evaluation
 docs/             screenshot.png (phone), screenshot-desktop.png, demo/ (web_demo.mp4/.gif, terminal_demo.mp4)
+                  explainer/index.html: the plain-English explainer page (also published as an Artifact)
 scripts/demo/     scripts that record the demo videos (see its README)
 scripts/ui_smoke.js, scripts/ui_upload_flow.js   Playwright checks of the web UI (not part of pytest)
 ```

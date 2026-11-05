@@ -1,0 +1,340 @@
+<title>Ask My Docs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&family=Newsreader:opsz,wght@6..72,400..600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout concept: one calm reading column, like a well-set manual. Real output from the project
+   (a wrong AI answer, search results, test numbers) is shown as evidence, in panels that look like the app. */
+:root{
+  --bg:#f5f6fb; --surface:#ffffff; --surface-2:#eceef8; --ink:#13152b; --muted:#585e80; --line:#dcdff0;
+  --accent:#3f4bde; --accent-ink:#ffffff; --accent-soft:#e7e9ff;
+  --mark:#ffe14d; --mark-ink:#2e2500; --mark-wash:#ffe14d;
+  --warn:#7a4f00; --warn-soft:#fff4d9; --bad:#b42318; --bad-soft:#fde8e6;
+  --display:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --read:"Newsreader",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c0e1d; --surface:#151833; --surface-2:#1e2244; --ink:#eceefc; --muted:#a3a9cd; --line:#2b3060;
+    --accent:#909bff; --accent-ink:#0c0e1d; --accent-soft:#242b63;
+    --mark:#f2d544; --mark-ink:#241c00; --mark-wash:rgba(242,213,68,.40);
+    --warn:#f0c15f; --warn-soft:#2e2410; --bad:#ff8a80; --bad-soft:#3a1816; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c0e1d; --surface:#151833; --surface-2:#1e2244; --ink:#eceefc; --muted:#a3a9cd; --line:#2b3060;
+  --accent:#909bff; --accent-ink:#0c0e1d; --accent-soft:#242b63;
+  --mark:#f2d544; --mark-ink:#241c00; --mark-wash:rgba(242,213,68,.40);
+  --warn:#f0c15f; --warn-soft:#2e2410; --bad:#ff8a80; --bad-soft:#3a1816; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 18px/1.65 var(--body);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+.wrap{max-width:900px;margin:0 auto;padding-block:56px 72px}
+h1,h2,h3{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(44px,8vw,76px);font-weight:650;letter-spacing:-.04em}
+h1 mark{background:linear-gradient(transparent 56%,var(--mark-wash) 56% 93%,transparent 93%);color:inherit;padding:0 .05em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+h2{font-size:clamp(28px,4.6vw,38px);font-weight:650;letter-spacing:-.03em;margin-bottom:14px}
+h3{font-size:21px;font-weight:700;margin-bottom:6px}
+p{margin:0 0 14px;max-width:66ch}
+a{color:var(--accent);text-underline-offset:3px}
+a:focus-visible,summary:focus-visible,video:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+code{background:var(--surface-2);padding:1px 6px;border-radius:5px}
+.eyebrow{font:600 13px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 18px}
+.lede{font-size:clamp(20px,2.6vw,24px);line-height:1.5;color:var(--ink);margin:18px 0 22px;max-width:30em}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px;padding:0;list-style:none}
+.pills li{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 14px;font-size:15px;color:var(--muted)}
+.btn{display:inline-block;background:var(--accent);color:var(--accent-ink);padding:10px 20px;border-radius:10px;font-weight:700;text-decoration:none}
+.btn.alt{background:transparent;color:var(--accent);border:2px solid var(--accent);padding:8px 18px}
+.actions{display:flex;flex-wrap:wrap;gap:12px}
+section{margin-top:68px}
+.sub{color:var(--muted);font-size:16px}
+.app p,.fail p,.warn p,.callout p{max-width:none}
+#limits ul{margin:0;padding-left:22px;max-width:66ch}
+#limits li{margin-bottom:10px}
+
+/* the problem */
+.fail{background:var(--bad-soft);border:1px solid var(--bad);border-radius:14px;padding:18px 20px;margin:18px 0 8px}
+.fail .q{font:600 14px/1.4 var(--mono);color:var(--muted);margin:0 0 8px}
+.fail blockquote{margin:0;font:400 20.5px/1.5 var(--read)}
+.fail figcaption{margin-top:10px;font-size:15px;color:var(--muted)}
+
+/* three words */
+.words{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0 0}
+.word{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.word .big{font:700 15px/1 var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px}
+.word p{margin:0;font-size:16px}
+.exam{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:22px 0 0}
+.exam div{border-radius:14px;padding:16px 18px;border:1px solid var(--line);background:var(--surface)}
+.exam div.open{border-color:var(--accent);background:var(--accent-soft)}
+.exam strong{display:block;font-family:var(--display);font-size:20px;margin-bottom:4px}
+.exam p{margin:0;font-size:16px}
+
+/* phases */
+.phases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:22px}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 22px 10px}
+.phase header{margin-bottom:12px}
+.phase header p{margin:2px 0 0;font-size:15px;color:var(--muted)}
+.phase ol{list-style:none;margin:0;padding:0;counter-reset:s}
+.phase li{counter-increment:s;position:relative;padding:0 0 16px 46px}
+.phase li::before{content:counter(s);position:absolute;left:0;top:2px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+  font:700 15px/30px var(--mono);text-align:center}
+.phase li:not(:last-child)::after{content:"";position:absolute;left:14px;top:34px;bottom:2px;width:2px;background:var(--line)}
+.phase li b{display:block;font-family:var(--display);font-size:18px;margin-bottom:1px}
+.phase li span{font-size:16px;color:var(--muted);display:block;line-height:1.5}
+.callout{margin:22px 0 0;background:var(--accent-soft);border-left:5px solid var(--accent);border-radius:0 12px 12px 0;padding:14px 18px}
+.callout p{margin:0;font-size:17px}
+
+/* real example, styled like the app */
+.app{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:20px}
+.app .label{font:600 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+.app .label:first-child{margin-top:0}
+.question{background:var(--surface-2);border-radius:10px;padding:12px 14px;margin:0}
+.answer{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0;font:400 19.5px/1.55 var(--read)}
+.cite{display:inline-block;min-width:22px;padding:0 6px;margin:0 2px;border:0;border-radius:7px;background:var(--mark);color:var(--mark-ink);font:700 12px/22px var(--display);text-align:center;vertical-align:1px}
+.src{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:0 0 8px}
+.src .head{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.src .badge{background:var(--mark);color:var(--mark-ink);font:700 12px/22px var(--display);border-radius:7px;padding:0 7px}
+.src .file{font-weight:700;font-size:16px}
+.src .meta{font:400 13px/1 var(--mono);color:var(--muted)}
+.bar{height:5px;border-radius:3px;background:var(--surface-2);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.note{font-size:15px;color:var(--muted);margin:12px 0 0}
+
+/* videos */
+.vids{display:grid;gap:34px;margin-top:22px}
+figure{margin:0}
+video{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line);background:#050912}
+figure figcaption{font-size:15px;color:var(--muted);margin-top:10px;max-width:70ch}
+figure.phone{max-width:340px;margin:0 auto}
+figure.phone video{border-radius:22px}
+figure figcaption b{color:var(--ink)}
+
+/* lists and tables */
+.built{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
+.built li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:17px}
+.built b{font-family:var(--display);font-size:18px}
+.tablewrap{overflow-x:auto;margin-top:18px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:16px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line)}
+th{font:600 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+.warn{background:var(--warn-soft);border-left:5px solid var(--warn);border-radius:0 12px 12px 0;padding:14px 18px;margin-top:18px}
+.warn p{margin:0;font-size:16.5px}
+.warn strong{color:var(--warn)}
+.fixes{display:grid;gap:12px;margin:18px 0 0;padding:0;list-style:none}
+.fixes li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+.fixes b{display:block;font-family:var(--display);font-size:18px;margin-bottom:2px}
+.fixes span{font-size:16px;color:var(--muted)}
+dl{margin:18px 0 0;display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr);gap:0}
+dt,dd{margin:0;padding:12px 0;border-bottom:1px solid var(--line)}
+dt{font-family:var(--display);font-weight:700;font-size:18px;padding-right:16px}
+dd{font-size:16.5px;color:var(--muted)}
+footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted);font-size:15px}
+
+@media (max-width:720px){
+  .words,.exam,.phases{grid-template-columns:minmax(0,1fr)}
+  dl{grid-template-columns:minmax(0,1fr)}
+  dt{border-bottom:0;padding-bottom:0}
+  .wrap{padding-block:36px 56px}
+  section{margin-top:52px}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">A RAG project, explained in plain English</p>
+    <h1>Ask <mark>My Docs</mark></h1>
+    <p class="lede">A small tool that answers questions from your own documents, and shows which passages each answer came from, so you can check it.</p>
+    <ul class="pills">
+      <li>Runs on your own computer</li>
+      <li>No API key, no cost</li>
+      <li>Open source (MIT)</li>
+    </ul>
+    <div class="actions">
+      <a class="btn" href="https://github.com/nassertarynix/ask-my-docs" target="_blank" rel="noopener">See the code on GitHub</a>
+      <a class="btn alt" href="#watch">Watch the demos</a>
+    </div>
+  </header>
+
+  <section id="problem">
+    <h2>The problem it solves</h2>
+    <p>AI chat models are good at sounding sure. When they do not know something, they often make it up.</p>
+    <p>We saw this ourselves. We asked the small AI model used in this project, "What is RAG?", and gave it no documents. This is what it said:</p>
+    <figure class="fail">
+      <p class="q">Prompt sent to the model: Reply with one short sentence: what is RAG?</p>
+      <blockquote>"RAG can refer to several things, including a type of textile fabric, a abbreviation for various things such as "Right as Gang" in some cultures, or a acronym for specific organizations like the RAG (Revenue Access Group)."</blockquote>
+      <figcaption>Real output, copied exactly. None of it is right. Fixing this is what RAG is for.</figcaption>
+    </figure>
+  </section>
+
+  <section id="rag">
+    <h2>What RAG means</h2>
+    <p>RAG stands for <b>Retrieval-Augmented Generation</b>. The name is long. The idea is short: <b>let the AI look things up before it answers.</b></p>
+    <div class="exam">
+      <div>
+        <strong>A normal AI: closed-book exam</strong>
+        <p>It answers from memory. If the memory is wrong or missing, it can still give a confident answer.</p>
+      </div>
+      <div class="open">
+        <strong>A RAG system: open-book exam</strong>
+        <p>It first finds the right pages in your notes, then writes the answer from those pages.</p>
+      </div>
+    </div>
+    <div class="words">
+      <div class="word"><p class="big">Retrieval</p><p>Find the passages in your documents that are most relevant to the question.</p></div>
+      <div class="word"><p class="big">Augmented</p><p>Add those passages to the question, so the AI has the facts in front of it.</p></div>
+      <div class="word"><p class="big">Generation</p><p>The AI writes the answer, using only those passages.</p></div>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2>How Ask My Docs works</h2>
+    <p>There are two parts. You prepare your documents once. After that, you can ask as many questions as you like.</p>
+    <div class="phases">
+      <article class="phase" aria-labelledby="prep">
+        <header><h3 id="prep">Prepare once</h3><p>Command: <code>ingest</code></p></header>
+        <ol>
+          <li><b>Read the files</b><span>It reads your <code>.md</code>, <code>.txt</code> and <code>.pdf</code> files. For PDFs it keeps the page number, so a citation can say which page it came from. You can point it at a folder, or add files from the web page.</span></li>
+          <li><b>Cut them into passages</b><span>Each file is cut into short pieces of about 800 characters, at the end of a line or sentence, so each piece is about one thing.</span></li>
+          <li><b>Turn passages into numbers</b><span>A small AI model turns each passage into a long list of numbers that captures its meaning. This is called an embedding.</span></li>
+          <li><b>Save the index</b><span>The numbers are saved next to the text. This saved collection is the index.</span></li>
+        </ol>
+      </article>
+      <article class="phase" aria-labelledby="ask">
+        <header><h3 id="ask">Ask any time</h3><p>Commands: <code>ask</code> or the web page</p></header>
+        <ol>
+          <li><b>You type a question</b><span>In plain language, like talking to a person.</span></li>
+          <li><b>The question becomes numbers too</b><span>The same model does it, so questions and passages can be compared.</span></li>
+          <li><b>Find the closest passages</b><span>The tool compares the question with every passage and picks the 4 closest. This is the retrieval step.</span></li>
+          <li><b>The AI writes the answer</b><span>It gets the 4 passages and the question. It is told to answer only from them, to cite them, and to say "I don't know" if the answer is not there.</span></li>
+          <li><b>You see the answer and its sources</b><span>Citations like [1] point to the passages, which are shown in full.</span></li>
+        </ol>
+      </article>
+    </div>
+    <div class="callout">
+      <p><b>Why numbers?</b> Passages with similar meaning get similar numbers, even when the words differ. "How many days can I work from home?" and "Employees may work remotely up to three days per week" share almost no words, but their numbers are close. That is how the right passage is found.</p>
+    </div>
+  </section>
+
+  <section id="example">
+    <h2>A real example</h2>
+    <p>This is a real result from the project, using notes about the author's portfolio as the documents.</p>
+    <div class="app" role="group" aria-label="Example of a real question, answer and sources">
+      <p class="label">Question</p>
+      <p class="question">What does Al-Nasser do at Tarynix?</p>
+      <p class="label">Answer</p>
+      <p class="answer">Al-Nasser Haddad works as a Technical Consultant at Tarynix Solutions, where he develops and configures Odoo business applications and related modules, builds custom Odoo modules, and uses Python, XML/QWeb views, and the Odoo ORM to fit client workflows and needs <span class="cite">1</span>.</p>
+      <p class="label">Sources found (the 4 closest passages)</p>
+      <div class="src"><div class="head"><span class="badge">1</span><span class="file">experience.md</span><span class="meta">similarity 0.79</span></div><div class="bar"><i style="width:79%"></i></div></div>
+      <div class="src"><div class="head"><span class="badge">2</span><span class="file">courses_and_volunteering.md</span><span class="meta">similarity 0.69</span></div><div class="bar"><i style="width:69%"></i></div></div>
+      <div class="src"><div class="head"><span class="badge">3</span><span class="file">courses_and_volunteering.md</span><span class="meta">similarity 0.68</span></div><div class="bar"><i style="width:68%"></i></div></div>
+      <div class="src"><div class="head"><span class="badge">4</span><span class="file">profile.md</span><span class="meta">similarity 0.67</span></div><div class="bar"><i style="width:67%"></i></div></div>
+    </div>
+    <p class="note">The best match, passage 1, is clearly ahead of the rest, and the answer cites it. In the real tool you can open each passage and read the exact text.</p>
+  </section>
+
+  <section id="watch">
+    <h2>Watch it work</h2>
+    <p>Two short demos. The first is a real session on a phone-sized screen. The second shows the command line.</p>
+    <div class="vids">
+      <figure class="phone">
+        <video controls preload="metadata" playsinline poster="web_poster.jpg" aria-label="Phone demo of the web interface">
+          <source src="../demo/web_demo.mp4" type="video/mp4">
+          Your browser cannot play this video.
+        </video>
+        <figcaption><b>On a phone (104 seconds).</b> A recording of the web page at phone size, in a real browser. It shows the passages appearing first, the answer streaming in, a swipe through the passages, a tapped citation, a question the documents cannot answer, then a PDF being added from the page, a question answered from it with its page cited, the PDF being removed again, and light and dark mode. The taps and captions were added for the video. The model's answers were captured from a real run and replayed during the recording, and the video says so in its last caption. Adding and removing the PDF were done live against the real server.</figcaption>
+      </figure>
+      <figure>
+        <video controls preload="metadata" playsinline poster="terminal_poster.jpg" aria-label="Command-line demo">
+          <source src="../demo/terminal_demo.mp4" type="video/mp4">
+          Your browser cannot play this video.
+        </video>
+        <figcaption><b>The command line (57 seconds).</b> Index the documents, ask questions, see retrieval only, get a refusal, run the evaluation, run the tests. The output is captured from real runs. Typing and streaming speed are simulated, and the video says so.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="built">
+    <h2>What was built</h2>
+    <ul class="built">
+      <li><b>A command-line tool.</b> <code>ingest</code>, <code>ask</code>, <code>evaluate</code> and <code>serve</code>.</li>
+      <li><b>A mobile-first web page.</b> Swipeable passage cards, streaming answers, citations you can tap to read the full passage, and light and dark themes. You can add your own documents right from the page, and it works offline: even its fonts come from the app.</li>
+      <li><b>An evaluation command.</b> It measures whether the right passage is found and whether the answers are right, using lists of test questions.</li>
+      <li><b>150 automated tests.</b> None of them needs the AI model, so they run anywhere.</li>
+      <li><b>Two sets of documents to try.</b> A made-up company handbook (with a PDF in it), and notes about the author's portfolio.</li>
+      <li><b>Documentation.</b> A README, a CLAUDE.md file for future work, the demo videos with the scripts that record them, and an MIT license.</li>
+    </ul>
+    <p class="note">Everything runs on one computer with <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a>. The answer model is Llama 3.2 (3 billion parameters, about 2 GB). The search model is nomic-embed-text (about 274 MB).</p>
+  </section>
+
+  <section id="results">
+    <h2>Does it work?</h2>
+    <p>The project measures itself. These are the latest results from the <code>evaluate</code> command, with the small local model.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Question set</th><th>Right passage ranked first</th><th>Right passage in top 4</th><th>Answers correct</th></tr></thead>
+        <tbody>
+          <tr><td>Portfolio notes (24 questions, 3 unanswerable)</td><td>19 of 21</td><td>21 of 21</td><td>22 of 23, plus 1 known weakness</td></tr>
+          <tr><td>Company handbook, including a PDF (11 questions, 1 unanswerable)</td><td>9 of 10</td><td>10 of 10</td><td>11 of 11</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="warn">
+      <p><strong>Read these with care.</strong> The questions were written by the author while building the tool, and the documents and prompt were changed after some failed. So the scores are on the optimistic side. They are best at catching things that break later.</p>
+    </div>
+    <div class="warn">
+      <p><strong>One known weakness.</strong> Asked "Which courses did he complete in 2026?", the small model gets the list wrong every time. It leaves one out or adds a course from another year. The right passage is found. The model just writes the list badly. This case is kept in the tests on purpose, labelled as a known issue.</p>
+    </div>
+
+    <h3 style="margin-top:34px">Problems found along the way, and the fixes</h3>
+    <ul class="fixes">
+      <li><b>Answers that were only "[1]"</b><span>The first prompt was too vague for a small model. Clear rules ("write full sentences, never reply with only a citation") raised an early 12-question check from 7 correct to 12.</span></li>
+      <li><b>Passages cut in the middle of a sentence</b><span>Long lists were chopped at fixed lengths. They are now cut at the end of a line or sentence, and each passage carries its document's title.</span></li>
+      <li><b>Contact details not found</b><span>They were buried at the end of a long profile. A short, separate document that states each fact in a plain sentence fixed it.</span></li>
+      <li><b>Different answers on each run</b><span>One question passed once and failed 4 times out of 5. The AI's randomness is now turned off, so results repeat.</span></li>
+      <li><b>A wrong message found while recording the demo</b><span>In fast mode the evaluation said a known issue "now passes" when no answers had been checked. It now says so correctly, and a test covers it.</span></li>
+    </ul>
+  </section>
+
+  <section id="limits">
+    <h2>What it cannot do yet</h2>
+    <ul>
+      <li>The small model is slower and less careful than the big hosted ones. An answer takes about 5 to 15 seconds on an ordinary computer, and long lists can be wrong.</li>
+      <li>It reads <code>.md</code>, <code>.txt</code> and text-based <code>.pdf</code> files. Scanned PDFs (pictures of pages), Word files and web pages are not read.</li>
+      <li>The web page has no login, so it is meant for your own computer only. For that reason, adding documents from the page is switched off automatically if the server can be reached from other computers.</li>
+      <li>Adding a large PDF from the page can take a minute or more on an ordinary computer, because every passage is turned into numbers.</li>
+      <li>A bigger local model, or a hosted one, can be used by changing settings. No code changes are needed.</li>
+    </ul>
+  </section>
+
+  <section id="words">
+    <h2>Words to know</h2>
+    <dl>
+      <dt>RAG</dt><dd>Retrieval-Augmented Generation. Find the right passages first, then let the AI answer from them.</dd>
+      <dt>Passage</dt><dd>A short piece of a document, about one idea. Also called a chunk.</dd>
+      <dt>Embedding</dt><dd>A list of numbers that captures what a passage means. Similar meaning gives similar numbers.</dd>
+      <dt>Index</dt><dd>The saved passages and their numbers, ready to search.</dd>
+      <dt>Similarity</dt><dd>A score from 0 to 1 for how close a passage is to the question. Higher is closer.</dd>
+      <dt>Prompt</dt><dd>The full message sent to the AI: the rules, the passages, and the question.</dd>
+      <dt>Citation</dt><dd>A marker like [1] in the answer that points to the passage it came from.</dd>
+      <dt>Local model</dt><dd>An AI model that runs on your own computer instead of on a company's servers.</dd>
+    </dl>
+  </section>
+
+  <section id="find">
+    <h2>Where to find it</h2>
+    <p>All the code, the documents, the tests and the demo videos are in one public repository.</p>
+    <div class="actions">
+      <a class="btn" href="https://github.com/nassertarynix/ask-my-docs" target="_blank" rel="noopener">Open the repository</a>
+      <a class="btn alt" href="https://github.com/nassertarynix/ask-my-docs/blob/main/README.md" target="_blank" rel="noopener">Read the README</a>
+      <a class="btn alt" href="https://github.com/nassertarynix/ask-my-docs/blob/main/CLAUDE.md" target="_blank" rel="noopener">Read CLAUDE.md</a>
+    </div>
+  </section>
+
+  <footer>Created by Al-Nasser Haddad and built together with Claude, an AI assistant. MIT license.</footer>
+</div>
