@@ -1,0 +1,218 @@
+# CLAUDE.md
+
+Guidance for Claude Code (and any other agent or developer) working in this repository.
+
+## What this project is
+
+**Ask My Docs** is a small, local **retrieval-augmented generation (RAG)** tool. You point it
+at a folder of `.md`, `.txt` or `.pdf` files, ask a question in plain language, and it answers using
+only the most relevant passages, citing them as `[1]`, `[2]`. If the documents do not contain
+the answer it says "I don't know based on the provided documents." Everything runs locally
+with [Ollama](https://ollama.com), so no API key, no cost, and no data leaves the machine.
+
+It is a **portfolio project** by Al-Nasser Haddad (the owner), published as a public MIT-licensed
+project, in the `ask-my-docs/` folder of the monorepo `nassertarynix/ask-my-docs` (the other folders are
+`minierp/` and `runway/`; the owner will later lift each folder into a repo of its own). Because it is public and meant to impress, keep it honest,
+tidy, and reproducible.
+
+Things to know about the owner's situation:
+- The owner **does not intend to run the project locally**. The demo videos in `docs/demo/`
+  are the project's demo; the owner adds a portfolio card linking to the repo by hand.
+- The owner's pronouns are not stated: avoid pronouns for the owner in docs and messages.
+- The list of fixes for the owner's portfolio website (and the READMEs of the projects it shows) is
+  `PORTFOLIO_WEBSITE_FIXES.md` in the monorepo root (one level above this folder). It was added at the owner's request so it can be read
+  from anywhere. It is about the portfolio, not this project: keep it accurate and tick items off as they are done.
+
+## Commands
+
+```bash
+# one-time setup
+ollama pull nomic-embed-text && ollama pull llama3.2:3b
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements-dev.txt
+
+python -m ask_my_docs ingest portfolio_docs          # build the index (writes ./index, gitignored)
+python -m ask_my_docs ask "Which state management does Jobly use?"
+python -m ask_my_docs ask "..." --no-llm             # retrieval only, no chat model
+python -m ask_my_docs serve                          # web UI at http://127.0.0.1:8000
+python -m ask_my_docs evaluate evals/portfolio.json --retrieval-only   # fast
+python -m ask_my_docs evaluate evals/portfolio.json                    # also answers, ~5 min on CPU
+pytest -q                                            # 150 tests, no Ollama needed
+node scripts/ui_smoke.js                             # UI check in a phone-sized browser (server + Ollama running)
+node scripts/ui_upload_flow.js                       # adding/removing documents; start the server on an EMPTY INDEX_DIR first
+```
+
+## Architecture
+
+```
+ask_my_docs/
+  config.py       settings from environment variables (defaults target local Ollama)
+  chunking.py     chunk_text(): paragraphs -> lines -> sentences -> fixed windows, with overlap
+  embeddings.py   embed(): OpenAI-compatible API, batched, L2-normalised float32 vectors
+  store.py        Chunk (text, source, index, title, page), Hit, VectorStore (cosine search; extended() and
+                  without_source() return new stores; atomic save; JSON + .npy)
+  ingest.py       load_documents() (md, txt, pdf), read_document(), chunks_for(), read_pdf(), reflow_pdf_text(), build_index()
+  documents.py    add_document(), remove_document(), describe(), clean_name(): the page's upload logic (UploadError)
+  rag.py          retrieve(): embed the question, return top-k hits
+  generate.py     SYSTEM_PROMPT, build_messages(), stream_answer() (streams tokens)
+  evaluate.py     load_cases(), run_evaluation(), format_report(); supports "known_issue"
+  web.py          FastAPI app: GET /, GET /api/status, POST /api/ask (newline-delimited JSON stream),
+                  POST /api/documents?name= (raw file body), DELETE /api/documents/{name}
+  cli.py          argparse commands: ingest, ask, evaluate, serve
+  static/index.html   the whole frontend: mobile-first, plain HTML/CSS/JS, no build step
+  static/fonts/       self-hosted Instrument Sans + Newsreader (woff2) and their OFL licences
+sample_docs/      fictional "Orbit Labs" handbook: generic demo and test corpus
+portfolio_docs/   documents about the owner, built from the public portfolio and project READMEs
+evals/            JSON question sets for `evaluate` (portfolio.json, handbook.json)
+tests/            pytest: chunking, store and prompt, ingest, web API (mocked), evaluation
+docs/             screenshot.png (phone), screenshot-desktop.png, demo/ (web_demo.mp4/.gif, terminal_demo.mp4)
+                  explainer/index.html: the plain-English explainer page (also published as an Artifact)
+scripts/demo/     scripts that record the demo videos (see its README)
+scripts/ui_smoke.js, scripts/ui_upload_flow.js   Playwright checks of the web UI (not part of pytest)
+```
+
+Data flow. **Ingest:** files -> chunk -> embed `title + chunk` with the `search_document: `
+prefix -> `VectorStore` -> `index/`. **Ask:** question -> embed with `search_query: ` ->
+top-k by dot product -> prompt (rules + numbered passages + question) -> streamed answer.
+
+The web stream sends one JSON object per line: `{"type":"sources"}` first, then many
+`{"type":"token"}`, then `{"type":"done"}` or `{"type":"error"}`.
+
+### Design decisions (keep them unless there is a good reason)
+- **No vector database.** A NumPy matrix and one matrix multiply is enough at this scale.
+- **OpenAI-compatible client** so local Ollama and hosted models share one code path
+  (`LLM_BASE_URL`, `LLM_API_KEY`, `CHAT_MODEL`, `EMBED_MODEL`). Clear the `EMBED_*_PREFIX`
+  variables for models that do not use nomic's task prefixes.
+- **No frontend framework.** Model and document text is inserted with `textContent`, never
+  as HTML. Keep it that way.
+- **The UI is mobile first.** Design and test at 360 to 430 px wide first, then widen.
+  Rules: no horizontal page scroll at any width (a test script checks 320 to 1280 px); touch
+  targets at least 44 px; the composer is docked at the bottom with `env(safe-area-inset-*)`
+  padding; inputs are at least 16 px so iOS does not zoom; light and dark follow
+  `prefers-color-scheme`; respect `prefers-reduced-motion`.
+- **Look:** cool paper and ink with an ultramarine brand and a highlighter-yellow mark (used for
+  citations and the headline), Instrument Sans for the interface and Newsreader for answers
+  and passages. The app makes **no requests to other sites**, so fonts are self-hosted, and
+  `tests/test_web.py` fails if the page references any `https://` resource.
+- **Adding documents from the page is locked down; keep it that way.** The server has no login and
+  an upload writes to disk, so: (1) it is allowed only when bound to this machine (`serve` turns it
+  off for any other `--host`, and `--no-uploads` turns it off); (2) mutating requests must pass
+  `_require_same_local_origin` (loopback `Host` stops DNS rebinding, `Origin` must match `Host`, so
+  another website in the same browser cannot post files); (3) names go through `clean_name` (no folders,
+  no dot files, supported type only) and content must match the type; (4) size is capped while the body
+  streams in (`MAX_UPLOAD_MB`); (5) a failed upload leaves nothing behind and a failed replacement keeps
+  the old version; (6) the index is saved atomically and changes happen under one lock. The endpoint takes
+  the raw file as the body (no `python-multipart` dependency). Uploads live in `<INDEX_DIR>/uploads`;
+  only those can be removed from the page; `ingest` rebuilds the index and drops them from it.
+- **Dependencies stay minimal:** `openai`, `numpy`, `fastapi`, `uvicorn`, `pypdf` (pure Python, for PDFs);
+  dev: `pytest`, `httpx`.
+- **`TEMPERATURE` defaults to 0** so answers and evaluation results are repeatable.
+- The server has no authentication and binds to `127.0.0.1`. Do not suggest exposing it.
+
+## Conventions
+
+- Python 3.10+, type hints, small functions, a docstring that explains *why* when it is not obvious.
+- **Tests must pass without Ollama or network.** Mock `retrieve`, `stream_answer`, `embed` and
+  the OpenAI client (see `tests/test_web.py`, `tests/test_evaluate.py`). Add a test for every
+  behaviour change.
+- CI runs `pytest` on Python 3.10 to 3.13 for every push and pull request (in the monorepo:
+  `.github/workflows/ask-my-docs.yml` at the repo root; as a standalone repo: this folder's `.github/workflows/tests.yml`), with read-only permissions and no secrets. Keep the tests offline so it stays that way.
+- Never commit `index/`, `.env`, API keys, or downloaded model files (see `.gitignore`).
+- Commit messages: imperative summary, then a short explanation of *why*. Push to `main`.
+- README claims must be backed by something reproducible. Prefer `evaluate` output over
+  anecdotes, and keep stated limitations honest.
+
+## Lessons learned (read before changing prompts, chunking or documents)
+
+- **Retrieval was never the bottleneck; the prompt and the small model were.** With
+  `llama3.2:3b`, a vague prompt produced bare `[1]` answers, and labelling passages as
+  `[1] (...)` made the model copy the label. The current prompt uses explicit rules, labels
+  like `Passage 1 (title - file):`, and puts the instruction *after* the question. Re-test
+  with `evaluate` after any wording change; small models are fragile.
+- **Chunking:** splitting long bullet lists at arbitrary characters made orphan fragments that
+  lost the project name. Split at line breaks, then sentence ends. Chunks deliberately start
+  with the tail of the previous chunk (overlap), so a chunk beginning mid-sentence is expected.
+- **PDFs need clean-up before chunking.** Extracted text has hard-wrapped lines, ligature characters
+  ("ﬁ" never matches a search for "fi") and no paragraph breaks. `reflow_pdf_text()` normalises (NFKC),
+  rejoins wrapped lines, and keeps short heading-like lines as their own paragraph. PDFs are chunked
+  page by page so every chunk has one page number to cite. A bad PDF must never stop an ingest: it is
+  skipped with a warning (scanned, damaged, password protected). `sample_docs/orbit_labs_expenses.pdf`
+  is the fixture; evals cover it.
+- **Embedding the document title with every chunk** improved ranking: middle chunks often do
+  not name what they are about.
+- **Document structure matters.** Contact details buried at the end of a long profile were
+  retrieved poorly. Short, separate documents with one fact per plain sentence work best.
+- **Recording video of the UI:** Playwright's `recordVideo` ignores `deviceScaleFactor` and leaves
+  the rest of the canvas grey (verify frame corners; a pixel of 128,128,128 is the grey). Use a
+  mobile-emulated browser with a 780x1848 viewport and a `width=390` meta viewport instead. At
+  that size recording starves the CPU-only model, so answers are captured first and replayed.
+  Details are in `scripts/demo/README.md`. Do not claim a demo is "live" if it was replayed.
+- **Prove security tests have teeth.** After writing the upload checks, each protection was switched
+  off in turn (origin check, size limit, name check) and the matching tests were confirmed to fail, then
+  restored. Do the same when adding a protection: a test that passes with the guard removed guards nothing.
+- **A dead end in the UI is a bug.** Removing every document mid-conversation hid the "add documents"
+  prompt (the welcome section was hidden) and left a disabled send button with no explanation. The
+  welcome/empty state now returns, and the input placeholder says what to do.
+- **A grid column stretched the whole page on phones.** The row of passage cards is wider
+  than the screen on purpose (it scrolls sideways), and a grid item cannot shrink below its
+  content by default, so the page became horizontally scrollable. Fix: `minmax(0, 1fr)` and
+  `min-width: 0` on grid items that hold scrolling content. Check overflow after UI changes.
+- **White text on a bright yellow marker is unreadable in dark mode.** The headline highlight
+  uses a translucent wash there (`--mark-wash`).
+- **Single runs of a language model mislead.** A case passed once and failed 4 of 5 repeats at
+  temperature 0.1. Hence temperature 0 and the `known_issue` mechanism.
+- **Known weakness:** the 3B model gets list answers wrong (the "courses completed in 2026"
+  case). It is recorded as a `known_issue` in `evals/portfolio.json`. A larger or hosted
+  model is the fix, via configuration only.
+- **Do not tune documents or prompts just to turn a failing case green** without saying so.
+  The question sets were written by the author while developing, so scores are optimistic
+  and best used to catch regressions. The README states this.
+
+## Evaluating changes
+
+1. Changed chunking, embeddings, or documents: run `evaluate ... --retrieval-only` (seconds).
+2. Changed the prompt, model, or temperature: run the full `evaluate` and read the actual
+   answers, not just the score.
+3. Update the results table in the README if the numbers change.
+4. Re-index after changing documents or chunking: `python -m ask_my_docs ingest <folder>`.
+   (`serve` reloads the index automatically when `index/chunks.json` changes.)
+
+## `portfolio_docs/`: confirmed facts (source of truth)
+
+These were confirmed by the owner. Keep the documents consistent with them.
+- **TAYAR** was the **graduation project**: the 5th and final year (2024-2025) of the five-year
+  Software Engineering degree at Damascus University (class of 2025). It has **three apps**:
+  a Flutter shop app, a Flutter worker app, and a **React admin dashboard** (not Flutter).
+  The backend is **Laravel**.
+- **Jobly** was a **fourth-year** project, not the graduation project. React is used for its
+  dashboards.
+- **Tecno Library** (keep the spelling "Tecno"; the repo is named Techno-Library): a 2023
+  third-year group project. Flutter + GetX frontend, **Laravel** backend, **Firebase for
+  notifications**.
+- The portfolio lists the stack the owner **personally worked in** on each project; the CV
+  lists the full stacks the apps were built with.
+- When facts are unclear, ask the owner. Do not guess, and do not invent details.
+
+## Working in a Claude Code cloud session
+
+The container is **ephemeral**: Ollama, the models, and anything uncommitted vanish when it is
+reclaimed. Push often. To rebuild the environment:
+
+```bash
+apt-get update && apt-get install -y zstd
+curl -fsSL https://ollama.com/install.sh | sh
+nohup ollama serve > /tmp/ollama.log 2>&1 &
+ollama pull nomic-embed-text && ollama pull llama3.2:3b
+python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
+```
+
+- `ollama.com` and `huggingface.co` are reachable; `api.github.com` user endpoints are not.
+- The box has about 4 CPUs and 15 GB RAM. `llama3.2:3b` answers in roughly 5 to 15 seconds.
+  Warm the model with one query before recording or timing anything.
+- Pushing needs the Claude GitHub App installed on the `nassertarynix` account for this repo.
+  A `fatal: expected 'acknowledgments'` line during push is a harmless negotiation warning.
+- Re-record the demos with `scripts/demo/` if the UI or behaviour changes. Keep the note in
+  the terminal demo saying that typing and streaming speed are simulated, and the last caption
+  of the mobile demo saying that the answers were captured from a real run and replayed.
+- Chromium and Playwright for Node are preinstalled; do not reinstall them. Take UI screenshots
+  at phone size (390x844, 2x) in both colour schemes before and after a visual change.

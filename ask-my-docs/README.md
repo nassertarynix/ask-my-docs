@@ -1,0 +1,293 @@
+# Ask My Docs
+
+[![tests](https://github.com/nassertarynix/ask-my-docs/actions/workflows/ask-my-docs.yml/badge.svg)](https://github.com/nassertarynix/ask-my-docs/actions/workflows/ask-my-docs.yml)
+
+A small, local **retrieval-augmented generation (RAG)** tool. Point it at a folder of
+notes, ask questions in plain language, and get an answer grounded in your documents,
+with the passages it used shown as sources. Everything runs on your machine with
+[Ollama](https://ollama.com): no API key, no cost, no data leaves your computer.
+
+![Ask My Docs on a phone: the welcome screen, an answer with its passages in light mode, the same in dark mode, and a passage open in the bottom sheet](docs/screenshot.png)
+
+```
+$ python -m ask_my_docs ask "How quickly must I report a lost laptop, and who do I tell?"
+Answer:
+You must report a lost laptop within one hour, and you should send the report to
+security@orbitlabs.example or message the on-call engineer in the #security-help channel. [1]
+
+Sources:
+  [1] security.md (chunk 0, score 0.71)
+  ...
+```
+
+If the documents do not contain the answer, it says so instead of guessing:
+
+```
+$ python -m ask_my_docs ask "What is the CEO's favorite color?"
+I don't know based on the provided documents. There is no mention of the CEO's favorite
+color in any of the passages.
+```
+
+(Outputs above are from `llama3.2:3b` on the bundled `sample_docs`. The screenshot uses
+the portfolio demo corpus described below.)
+
+## Demo
+
+<img src="docs/demo/web_demo.gif" alt="Phone-sized demo of the web interface" width="300">
+
+- [Mobile demo, 104 s (MP4)](docs/demo/web_demo.mp4): a recording of the web app at phone size
+  in a real browser: ask a question, watch the passages appear first and the answer stream in,
+  swipe the passages, open a cited passage, get a refusal for a question the documents cannot
+  answer, then add a PDF from the page, ask about it and get an answer citing its page, remove
+  it again, and see the light and dark themes. It starts with only the notes about the author
+  indexed. The taps and captions were added for the video.
+  The model's answers were captured from a real run and replayed during the recording (a
+  phone-resolution recording leaves a CPU-only model too little CPU to answer at normal speed),
+  and the video says so in its last caption. The app and its retrieval are the real ones, and
+  adding and removing the PDF are done live against the real server.
+- [Command-line demo, 57 s (MP4)](docs/demo/terminal_demo.mp4): a terminal replay of real,
+  captured output (ingest, ask, retrieval only, a refused question, the evaluation, the
+  tests). Typing and streaming speed are simulated, and the video says so.
+
+Both can be re-recorded with the scripts in [`scripts/demo/`](scripts/demo/).
+
+## How it works
+
+```
+ ingest                                   ask
+ ------                                   ---
+ .md .txt .pdf files                       question
+      |                                      |
+   chunk (~800 chars, overlap)            embed (same model)
+      |                                      |
+   embed each chunk  ----> index <----  cosine similarity, top-k chunks
+                         (JSON + .npy)       |
+                                          prompt = rules + numbered chunks + question
+                                             |
+                                          local LLM, streamed, with [1] [2] citations
+```
+
+1. **Chunk**: documents are split on paragraph boundaries into ~800-character pieces,
+   with a small overlap so facts that straddle a boundary are not lost.
+2. **Embed**: each chunk becomes a vector that captures its meaning
+   (`nomic-embed-text`). Vectors are normalised, so a dot product is cosine similarity.
+3. **Retrieve**: the question is embedded the same way and the closest chunks win.
+4. **Generate**: the chunks are given to the LLM (`llama3.2:3b`) with instructions to
+   answer only from them, cite them, and admit when the answer is missing.
+
+## Quickstart
+
+Requires Python 3.10+ and [Ollama](https://ollama.com/download). On some Linux systems the
+command is `python3` instead of `python`. The tests run in CI on Python 3.10, 3.11, 3.12 and 3.13 (Linux), and the full Quickstart was
+followed on a clean checkout with Python 3.13. Windows has not been tested.
+
+```bash
+ollama pull nomic-embed-text     # embedding model (~274 MB)
+ollama pull llama3.2:3b          # chat model (~2 GB)
+
+python -m venv .venv
+source .venv/bin/activate     # on Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+python -m ask_my_docs ingest sample_docs
+python -m ask_my_docs ask "How many days can I work remotely each week?"
+```
+
+Useful flags: `-k 6` retrieves more passages; `--no-llm` shows only the retrieved
+passages (handy for debugging retrieval without waiting for the model).
+
+To use your own documents, run `ingest` on any folder of `.md`, `.txt` or `.pdf` files.
+
+**PDFs:** text is read page by page, so a citation can say which page a passage came from
+(`policy.pdf, page 2`). The text is cleaned up first: ligature characters are normalised and
+hard-wrapped lines are rejoined into paragraphs. A scanned PDF has no text to read (OCR is not
+supported), and a damaged or password-protected one cannot be read; `ingest` skips such files
+with a warning and carries on with the rest. Tables and multi-column layouts come out as plain
+text and may read oddly.
+
+### Web interface
+
+```bash
+python -m ask_my_docs serve          # then open http://127.0.0.1:8000
+```
+
+Designed phone first, and it scales up to a centred column on larger screens:
+
+- The question box sits at the bottom, within thumb reach. An options button sets how many
+  passages to read, or turns answer writing off to see only the passages.
+- Retrieval shows first: the passages found appear as swipeable cards with a similarity bar.
+  Then the answer streams in, with the passages it cited marked.
+- Tap a citation or a card to read the whole passage in a bottom sheet.
+- A question the documents cannot answer gets a distinct "Not in your documents" answer.
+- **Add your own documents from the page.** Tap the "N docs" pill, or "Add documents" when
+  nothing is indexed yet, to open *Your documents*. Pick Markdown, text or PDF files (on a
+  desktop you can also drop them anywhere on the page). Each file is read, embedded and added to
+  the live index straight away, with a progress line per file that says what was added or why a
+  file was refused. You can start with no index at all and build one entirely from the page.
+  Uploading a file with the same name replaces it, and *Remove* deletes a document that was added
+  this way (it asks for a second tap to confirm).
+- Light and dark themes follow the device setting. The page needs no internet: its two fonts
+  (Instrument Sans and Newsreader, both SIL Open Font License, licences included) are served
+  by the app itself.
+
+<img src="docs/screenshot-desktop.png" alt="The same interface on a desktop screen" width="640">
+
+![Adding documents on a phone: the empty state, the Your documents sheet with per-file results (added, and refused with a reason), and the same sheet in dark mode](docs/screenshot-upload.png)
+
+**Safety of adding documents.** The server has no login, and adding files is a way to write to
+disk, so it is locked down:
+
+- It is only allowed when the server is bound to this machine (the default). With `--host 0.0.0.0`
+  or any other address it is turned off, and `serve --no-uploads` turns it off explicitly.
+- A request is accepted only from the app's own page on `localhost` or `127.0.0.1`. The server
+  checks the `Host` and `Origin` headers, so another website open in your browser cannot send
+  files to it, and a hostile name pointing at your machine (DNS rebinding) is refused.
+- Only a plain file name with a supported extension is accepted (no folders, no hidden files), the
+  content must match the type (a `.pdf` must look like a PDF), and files over `MAX_UPLOAD_MB`
+  (20 MB by default) are cut off while being received.
+- A file that fails (damaged, scanned, wrong type, model server down) leaves nothing behind, and
+  a failed replacement keeps the previous version. The index is saved atomically.
+
+Files added from the page are kept in `index/uploads` on the computer running the app, and
+nowhere else. Running `ingest` rebuilds the index from the folder you give it, so documents
+added from the page are no longer in the index afterwards (their files stay in `index/uploads`;
+add them again from the page). Indexing a large PDF on a CPU can take a minute or more.
+
+It binds to `127.0.0.1` by default and has no login, so keep it local; do not expose it to a
+network as-is.
+
+## Demo corpus: ask about the author's portfolio
+
+`portfolio_docs/` holds documents about the author, Al-Nasser Haddad, written from his
+public portfolio and the public README files of his GitHub projects. Index it to get an
+"ask about my work" assistant:
+
+```bash
+python -m ask_my_docs ingest portfolio_docs
+python -m ask_my_docs serve
+```
+
+Try: "What does Al-Nasser do at Tarynix?", "Which state management does Jobly use?", or
+"Does Al-Nasser know Rust?" (not in the documents, so it should say it doesn't know).
+
+## Evaluation
+
+```bash
+python -m ask_my_docs evaluate evals/portfolio.json --retrieval-only   # seconds, no chat model
+python -m ask_my_docs evaluate evals/portfolio.json                    # also checks answers
+```
+
+Each case in a JSON file has a question, text that a retrieved chunk must contain,
+and a pattern the answer must match; questions the documents cannot answer have only an
+answer pattern ("I don't know"). The report shows the rank of the right passage, whether
+each answer passed (a bare `[1]` does not count), and `hit@1` / `hit@k`. The exit code is
+non-zero when a case fails, so it can guard against regressions. A case can carry a
+`known_issue` note: it is still reported, but does not fail the run, and it is flagged if
+it starts passing.
+
+Latest results with `llama3.2:3b` (temperature 0, top-k 4):
+
+| Question set | Retrieval hit@1 | Retrieval hit@4 | Answers |
+|---|---|---|---|
+| `evals/portfolio.json` (24 cases, 3 unanswerable) | 19 / 21 | 21 / 21 | 22 / 23, plus 1 known issue |
+| `evals/handbook.json` (11 cases, 1 unanswerable; includes a PDF) | 9 / 10 | 10 / 10 | 11 / 11 |
+
+Read these numbers with care. I wrote the questions while developing the tool and changed
+the documents and prompt after seeing failures, so they are not a held-out test set and
+are optimistic. They are best used to catch regressions.
+
+## What testing a small model taught me
+
+The default 3B model is free and private, but it needs a careful prompt:
+
+- **Retrieval was never the problem.** On the 21 answerable questions in
+  `evals/portfolio.json` the right passage is in the top 4 every time (19 of 21 rank
+  first). Adding each document's title to the text that is embedded improved the
+  ranking, because a chunk from the middle of a document often never names the project
+  it is about.
+- **The prompt was.** The first prompt sometimes got a bare `[1]` as the whole answer, or
+  the model copied the passage labels back. Explicit rules ("never reply with only a
+  citation"), a different label format, and the instruction placed after the question
+  took an early 12-question answer check from 7 to 12 correct.
+- **Chunking matters.** Splitting long bulleted text at arbitrary characters produced
+  orphan fragments that lost the project name. Splitting at line breaks and sentence
+  ends fixed that.
+- **Document structure matters too.** Contact details buried at the end of a long
+  profile were retrieved poorly and the model skipped them. A short, separate document
+  that states each fact in a plain sentence fixed it.
+- **Single runs of a language model are misleading.** One question passed on a lucky run
+  and failed 4 times out of 5. Temperature now defaults to 0 so results are repeatable.
+- **Some weaknesses remain.** The 3B model gets list answers wrong (for the 2026 courses it
+  omits one or adds a course from another year). That case is kept in the evaluation as a documented known issue. A
+  larger local model or a hosted one (see Configuration) is the fix.
+
+## Configuration
+
+All settings are environment variables; the defaults target local Ollama.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `LLM_BASE_URL` | `http://localhost:11434/v1` | Any OpenAI-compatible endpoint |
+| `LLM_API_KEY` | `ollama` | Ignored by Ollama; set for hosted providers |
+| `CHAT_MODEL` | `llama3.2:3b` | Model that writes the answer |
+| `EMBED_MODEL` | `nomic-embed-text` | Model that creates embeddings |
+| `EMBED_DOC_PREFIX` / `EMBED_QUERY_PREFIX` | `search_document: ` / `search_query: ` | Task prefixes used by nomic; set to empty for other models |
+| `CHUNK_SIZE` / `CHUNK_OVERLAP` | `800` / `120` | Chunking, in characters |
+| `TOP_K` | `4` | Passages retrieved per question |
+| `MAX_UPLOAD_MB` | `20` | Largest file the web page accepts for upload |
+| `TEMPERATURE` | `0` | Sampling temperature; 0 makes answers repeatable |
+| `INDEX_DIR` | `index` | Where the index is saved |
+
+Because the client speaks the OpenAI-compatible API, switching to a hosted model is a
+configuration change, not a code change.
+
+## Project layout
+
+```
+ask_my_docs/
+  chunking.py     paragraph-aware chunking with overlap
+  embeddings.py   embedding client (batched, L2-normalised)
+  store.py        in-memory vector store, saved as JSON + NumPy
+  ingest.py       folder -> chunks -> vectors -> index (reads .md, .txt and .pdf)
+  documents.py    add and remove documents in a running index (the page's upload feature)
+  rag.py          the retrieval step, shared by CLI and web
+  generate.py     grounded prompt + streamed answer
+  evaluate.py     scores retrieval and answers against a question file
+  cli.py          `ingest`, `ask`, `evaluate` and `serve` commands
+  web.py          FastAPI app: status, streaming ask, and add/remove document endpoints
+  static/         mobile-first frontend (plain HTML/CSS/JS, no build step) and its fonts
+sample_docs/      fictional company handbook, including a PDF (generic demo and tests)
+docs/             screenshots and demo videos
+scripts/demo/     scripts that record the demo videos
+scripts/          UI checks that drive a real browser (ui_smoke.js, ui_upload_flow.js)
+portfolio_docs/   documents about the author, built from public portfolio data
+evals/            question sets for the `evaluate` command
+tests/            unit tests: chunking, search, persistence, prompts, web API (no Ollama needed)
+```
+
+Run the tests with `pip install -r requirements-dev.txt && pytest`.
+
+## Design decisions
+
+- **No vector database.** For a few thousand chunks, a NumPy matrix and one matrix
+  multiplication is fast, easy to read, and has no dependencies. A real database
+  (Chroma, Qdrant, pgvector) is the next step once the corpus outgrows memory.
+- **OpenAI-compatible client.** One code path serves local Ollama and hosted models.
+- **No frontend framework.** The UI is one HTML file that reads a streamed response
+  (newline-delimited JSON), so there is nothing to build or install, and model output
+  is inserted as text, never as HTML.
+- **Strict prompt.** The model must cite passages and refuse when the context lacks
+  the answer, which keeps a small 3B model from inventing facts.
+
+## Limitations and next steps
+
+- Text files and text-based PDFs only. Scanned PDFs (no OCR), HTML, Word and web pages are not read.
+- Pure vector search; adding keyword search (BM25) and a reranker would help with
+  exact terms such as names and numbers.
+- Small local models answer slowly on CPU (about 5 to 15 seconds here) and can miss
+  details, so check the cited sources.
+- The question sets are small and were written by the author, so scores are optimistic.
+
+## License
+
+[MIT](LICENSE)

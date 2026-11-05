@@ -1,0 +1,57 @@
+name: minierp
+
+on:
+  push:
+    branches: [main]
+    paths: ["minierp/**", ".github/workflows/minierp.yml"]
+  pull_request:
+    paths: ["minierp/**", ".github/workflows/minierp.yml"]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: minierp
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: minierp/package-lock.json
+      - run: npm ci
+      - name: Type check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+      - name: Build
+        run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: minierp/package-lock.json
+      - run: npm ci
+      - name: Install the browser Playwright needs
+        run: npx playwright install --with-deps chromium
+      - name: Browser tests
+        run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: minierp-playwright-traces
+          path: minierp/test-results/
+          retention-days: 7
