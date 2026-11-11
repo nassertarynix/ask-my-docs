@@ -1,0 +1,4 @@
+telethon>=1.36,<2
+python-dotenv>=1.0,<2
+# parser.py imports yaml, which the original specification did not list
+pyyaml>=6,<7

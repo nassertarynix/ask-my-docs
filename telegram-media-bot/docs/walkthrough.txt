@@ -1,0 +1,59 @@
+SIMULATED walkthrough: real bot code, fake Telegram client. No network.
+
+== Posts arrive in the storage channel ==
+  post 101: --- | title: "Dune" | type: Movie | year: 2021 | resolution: 1080p | g...  ->  indexed
+  post 102: --- | title: "Dune" | type: Movie | year: 2021 | resolution: 4K | ---...  ->  indexed
+  post 103: --- | title: "Attack on Titan" | type: Anime | year: 2013 | season: 1 ...  ->  indexed
+  post 104: --- | title: "Attack on Titan" | type: Anime | year: 2013 | season: 1 ...  ->  indexed
+  post 105: Title: Attack on Titan | Type: Anime | Year: 2013 | Season: 2 | Episod...  ->  indexed
+  post 106: just a nice video, no tags...  ->  skipped (no usable metadata in the caption (a title is required))
+  (admin 99 is told: Skipped message 106: no usable metadata in the caption (a title is required). Fix the caption (edit the post) and it will be indexed.)
+  library now: {'titles': 2, 'files': 5, 'movies': 1, 'anime': 1, 'shows': 0}
+
+== A user searches ==
+USER: titan attack
+  BOT: Found 1 title for titan attack.
+       [🌸 Attack on Titan (2013)]
+
+USER taps [🌸 Attack on Titan (2013)]
+  BOT: Attack on Titan (2013) · Anime
+       Action, Fantasy
+       Choose a season:
+       [Season 1 · 2] [Season 2 · 1]
+       [‹ Back to results]
+
+USER taps [Season 1 · 2]
+  BOT: Attack on Titan (2013) · Anime
+       Action, Fantasy · Season 1
+       Choose an episode:
+       [E1] [E2]
+       [‹ Back to seasons]
+
+USER taps [E2]
+  BOT sends a video (file_id BAADAgADZTJ5AA...) with caption: Attack on Titan (2013) · S01E02 · 1080p
+
+== A movie in two qualities ==
+USER: dune
+
+USER taps [🎬 Dune (2021)]
+  BOT: Dune (2021) · Movie
+       Sci-Fi, Adventure
+       Choose a quality:
+       [4K] [1080p]
+       [‹ Back]
+
+USER taps [4K]
+  BOT sends a video with caption: Dune (2021) · 4K
+
+== Telegram invalidates the stored file reference ==
+  send_file failed with FileReferenceExpiredError
+  bot fetched message 102 from the storage channel (get_messages calls: [(-1001234567890, 102)])
+  stored file_id unchanged: True (Telegram's bot file ids do not carry the file reference, so the id looks the same)
+  so the retry used the post's media object (MessageMediaDocument), which carries a fresh reference
+  the user still received the file: True
+
+== The post is deleted from the channel ==
+USER: dune
+  BOT: Found 1 title for dune.
+       [🎬 Dune (2021)]
+  the 4K file is gone; the title remains with its other file. library: {'titles': 2, 'files': 4, 'movies': 1, 'anime': 1, 'shows': 0}
