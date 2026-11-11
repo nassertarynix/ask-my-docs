@@ -84,7 +84,9 @@ fresh buffer per retry, foreign keys, WAL, name validation, file permissions, se
   client that imitates the calls it makes (including flood waits and a login that needs a password), and everything else is tested end to end against a local-folder
   backend with the same interface. Expect to fix small differences the first time you connect a real account.
 - **The demo and the browser tests use the local-folder backend**, not Telegram.
-- The Tauri shell: the process-management module is compiled and tested; see "Desktop shell" below for what else was checked.
+- **The Tauri shell compiles but has not been opened.** `cargo check` passes on Tauri 2 (locally and in CI), and the std-only process module has 8 passing tests. No window was launched,
+  because the build environment has no display, so the full desktop flow (starting the Python sidecar, handing the token to the window, the platform save prompt) is untested.
+  The release build also needs the backend packaged as an executable (for example with PyInstaller, named `tgcs-backend` and listed in `src-tauri/tauri.release.conf.json`); that packaging step is not set up yet.
 
 ## Limitations (please read)
 
