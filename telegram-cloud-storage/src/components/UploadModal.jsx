@@ -2,23 +2,24 @@ import { AlertTriangle, ArrowDownToLine, ArrowUpFromLine, Check, Loader2, X } fr
 import { formatBytes, formatPercent } from '../lib/format.js';
 import { Dialog, buttonClass } from './Dialog.jsx';
 
-const LABEL = {
+// `store` is where the files really go: "Telegram", or "local test storage" when the backend runs in its folder mode.
+const label = (store) => ({
   queued: 'Waiting',
   sending: 'Reading file',
   hashing: 'Checking file',
-  uploading: 'Sending to Telegram',
+  uploading: `Sending to ${store}`,
   committing: 'Saving',
-  downloading: 'Fetching from Telegram',
+  downloading: `Fetching from ${store}`,
   verifying: 'Verifying checksum',
   done: 'Done',
-};
+});
 
-function statusText(t) {
+function statusText(t, store) {
   if (t.status === 'error') return t.error;
   if (t.status === 'cancelled') return 'Cancelled';
   if (t.status === 'done') return t.kind === 'upload' ? 'Uploaded' : 'Downloaded';
   if (t.note) return t.note;
-  const base = LABEL[t.status === 'sending' ? 'sending' : t.phase] ?? 'Working';
+  const base = label(store)[t.status === 'sending' ? 'sending' : t.phase] ?? 'Working';
   return t.chunks && ['uploading', 'downloading'].includes(t.phase) ? `${base} · part ${Math.max(1, t.chunk)} of ${t.chunks}` : base;
 }
 
@@ -30,7 +31,7 @@ function progress(t) {
 }
 
 /** Every upload and download, with a live progress bar. Closing this window does not stop anything. */
-export function UploadModal({ transfers, onClose, onCancel, onClear, live }) {
+export function UploadModal({ transfers, onClose, onCancel, onClear, live, store = 'Telegram' }) {
   const finished = transfers.filter((t) => ['done', 'error', 'cancelled'].includes(t.status)).length;
   return (
     <Dialog
@@ -77,7 +78,7 @@ export function UploadModal({ transfers, onClose, onCancel, onClear, live }) {
                   <div className={`h-full rounded-full transition-[width] duration-200 ${failed ? 'bg-bad' : done ? 'bg-good' : 'bg-accent'}`} style={{ width: `${failed ? 100 : pct}%` }} />
                 </div>
                 <div className={`mt-1.5 flex justify-between text-xs ${failed ? 'text-bad' : 'text-ink-2'}`}>
-                  <span>{statusText(t)}</span>
+                  <span>{statusText(t, store)}</span>
                   {!failed && t.status !== 'cancelled' && <span className="tabular">{pct}%</span>}
                 </div>
               </li>

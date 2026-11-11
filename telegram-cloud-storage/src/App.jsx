@@ -238,7 +238,7 @@ export default function App() {
         </div>
       )}
 
-      {dialog === 'transfers' && <UploadModal transfers={transfers} live={live} onClose={() => setDialog(null)} onCancel={cancel} onClear={clearFinished} />}
+      {dialog === 'transfers' && <UploadModal store={status?.backend === 'local' ? 'local test storage' : 'Telegram'} transfers={transfers} live={live} onClose={() => setDialog(null)} onCancel={cancel} onClear={clearFinished} />}
       {dialog === 'settings' && <SettingsModal status={status} onClose={() => setDialog(null)} onChanged={refresh} notify={notify} />}
       {dialog === 'newFolder' && (
         <Dialog title="New folder" onClose={() => setDialog(null)} footer={<><button type="button" className={buttonClass()} onClick={() => setDialog(null)}>Cancel</button><button type="submit" form="new-folder" className={buttonClass('primary')} disabled={!folderName.trim()}>Create</button></>}>
