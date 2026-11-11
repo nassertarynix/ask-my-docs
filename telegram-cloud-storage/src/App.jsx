@@ -255,7 +255,7 @@ export default function App() {
             {selectedItems.filter((i) => i.isFolder).length > 0 ? 'Folders are deleted with everything inside them. ' : ''}
             The files are also removed from your Telegram channel. This cannot be undone.
           </p>
-          <ul className="mt-3 max-h-40 list-disc overflow-y-auto ps-5 text-sm">
+          <ul className="mt-3 max-h-40 list-inside list-disc overflow-y-auto text-sm">
             {selectedItems.slice(0, 8).map((i) => <li key={itemKey(i)} className="truncate">{i.isFolder ? i.name : i.file_name}</li>)}
             {selectedItems.length > 8 && <li className="list-none text-ink-3">and {selectedItems.length - 8} more</li>}
           </ul>

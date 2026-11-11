@@ -18,7 +18,7 @@ backend, **using a local folder as the storage backend, not real Telegram** (see
 4. To download, the chunks are fetched in order, the size and SHA-256 are verified, and only then is the file delivered.
 5. If the local database is lost, **Rebuild the index** reads the captions in the channel and recreates every complete file.
 
-More detail, the data model and the security model: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+More detail, the data model and the security model: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). A single-page illustrated guide (screenshots, the demo video, diagram, test table and limits) is in [`docs/guide.html`](docs/guide.html); open it in a browser after downloading it.
 
 ## Features
 
