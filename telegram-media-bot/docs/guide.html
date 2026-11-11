@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Telegram Media Library Bot: Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; the chat mock-up is the centrepiece. Palette: ink on cool paper with one indigo accent, like the project's own docs. */
+:root{--bg:#f4f5fa;--surface:#fff;--sunken:#eaecf5;--ink:#161a2b;--ink2:#575e78;--line:#d8dbe9;--accent:#4f46c8;--accent-ink:#fff;--wash:#e6e4fb;--good:#15803d;--warn:#a85a00;--warnwash:#fdf0d8;--bubble-in:#ffffff;--bubble-out:#dfe9ff;--btn:#e8ebf7;--font:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'DM Mono',ui-monospace,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1019;--surface:#161926;--sunken:#1d2132;--ink:#e8ebf7;--ink2:#a2a9c4;--line:#292e45;--accent:#9a93ff;--accent-ink:#12102e;--wash:#25235a;--good:#4ade80;--warn:#f0b254;--warnwash:#33260f;--bubble-in:#1d2132;--bubble-out:#2a3a66;--btn:#2a2f48;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1019;--surface:#161926;--sunken:#1d2132;--ink:#e8ebf7;--ink2:#a2a9c4;--line:#292e45;--accent:#9a93ff;--accent-ink:#12102e;--wash:#25235a;--good:#4ade80;--warn:#f0b254;--warnwash:#33260f;--bubble-in:#1d2132;--bubble-out:#2a3a66;--btn:#2a2f48;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--font);padding-block:36px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:52px}
+section{min-width:0}
+h1{font-size:clamp(32px,7vw,52px);line-height:1.04;letter-spacing:-.03em;margin:0 0 14px;font-weight:700;text-wrap:balance}
+h2{font-size:24px;line-height:1.2;letter-spacing:-.015em;margin:0 0 16px;font-weight:650;text-wrap:balance}
+h3{font-size:16px;margin:0 0 6px;font-weight:600}
+p{margin:0 0 12px;max-width:68ch}
+.lede{font-size:19px;color:var(--ink2);max-width:60ch}
+.muted{color:var(--ink2)}
+code,.mono{font-family:var(--mono);font-size:.9em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{font:500 13px var(--mono);background:var(--wash);color:var(--accent);padding:5px 11px;border-radius:999px}
+.box{border-radius:12px;padding:14px 16px;border:1px solid var(--line);background:var(--surface);min-width:0}
+.box.warn{background:var(--warnwash);border-color:transparent;border-inline-start:4px solid var(--warn)}
+.steps{display:grid;gap:12px;counter-reset:s;padding:0;margin:0;list-style:none}
+.steps>li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 56px;position:relative;min-width:0}
+.steps>li::before{content:counter(s);position:absolute;left:16px;top:14px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:600 14px/28px var(--font);text-align:center}
+.steps h3{margin-bottom:4px}
+.steps ol,.steps ul{margin:6px 0 0;padding-left:20px}
+pre{margin:8px 0 0;padding:14px 16px;background:var(--sunken);border-radius:12px;overflow-x:auto;font:400 13px/1.55 var(--mono);color:var(--ink)}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.flow{width:100%;height:auto;display:block}
+.flow text{font-family:var(--font);fill:var(--ink)}
+.flow .sub{fill:var(--ink2);font-size:12px}
+.flow .node{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.flow .hot{fill:var(--wash);stroke:var(--accent);stroke-width:1.5}
+.flow .arrow{stroke:var(--accent);stroke-width:2;fill:none}
+.flow .head{fill:var(--accent)}
+/* the simulated chat */
+.chat{background:var(--sunken);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;max-width:520px;margin:0 auto;border:1px solid var(--line)}
+.chat .tag{align-self:center;font:500 12px var(--mono);color:var(--ink2);background:var(--surface);padding:3px 10px;border-radius:999px}
+.msg{max-width:88%;padding:9px 12px;border-radius:14px;font-size:15px;line-height:1.45;min-width:0;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:var(--bubble-out);border-bottom-right-radius:4px}
+.msg.bot{align-self:flex-start;background:var(--bubble-in);border-bottom-left-radius:4px;border:1px solid var(--line)}
+.msg b{font-weight:600}.msg i{color:var(--ink2)}
+.kb{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.kb div{display:flex;gap:6px}
+.kb span{flex:1;text-align:center;background:var(--btn);border-radius:8px;padding:7px 8px;font-size:14px;font-weight:500;min-width:0}
+.kb span.tapped{outline:2px solid var(--accent)}
+.file{display:flex;gap:10px;align-items:center}
+.file .ico{width:40px;height:40px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:18px;flex:none}
+.note{font-size:13px;color:var(--ink2);text-align:center;margin:4px auto 0;max-width:520px}
+ul.tight{margin:0;padding-left:20px;max-width:70ch}ul.tight li{margin-bottom:6px}
+@media (prefers-reduced-motion:no-preference){.box{transition:border-color .15s}.box:hover{border-color:var(--accent)}}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>Telegram Media Library Bot</h1>
+  <p class="lede">Post videos to a private channel with a short caption. The bot files them in a database, and people find them by typing a title and tapping through season and episode.</p>
+  <div class="chips"><span class="chip">Python</span><span class="chip">Telethon (MTProto)</span><span class="chip">SQLite</span><span class="chip">up to 2 GB files</span><span class="chip">226 tests</span></div>
+</header>
+
+<section aria-labelledby="status">
+  <h2 id="status">Where it stands</h2>
+  <div class="box warn"><b>Never run against real Telegram.</b> There were no Telegram credentials where it was built. All 226 tests pass offline, using real Telethon message objects and a fake client, and the chat below is simulated the same way. Expect small fixes the first time you connect a real bot.</div>
+  <p class="muted" style="margin-top:12px">Use it only for media you have the right to share, and keep it private: set <code>ALLOWED_USER_IDS</code> to the people you choose.</p>
+</section>
+
+<section aria-labelledby="flow">
+  <h2 id="flow">How it works</h2>
+  <svg class="flow" viewBox="0 0 900 230" role="img" aria-label="A video posted to the channel is parsed and saved in SQLite. A user searches, taps through menus, and the bot sends the file, refreshing the file id from the channel if it has gone stale.">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="head"/></marker></defs>
+    <text x="10" y="22" font-weight="600">You, once per video</text>
+    <rect class="node" x="10" y="36" width="170" height="64" rx="10"/><text x="95" y="63" text-anchor="middle" font-weight="600">Post to channel</text><text class="sub" x="95" y="82" text-anchor="middle">video + caption</text>
+    <rect class="node" x="250" y="36" width="170" height="64" rx="10"/><text x="335" y="63" text-anchor="middle" font-weight="600">Parse caption</text><text class="sub" x="335" y="82" text-anchor="middle">title, season, quality</text>
+    <rect class="hot" x="490" y="36" width="190" height="64" rx="10"/><text x="585" y="63" text-anchor="middle" font-weight="600">SQLite library</text><text class="sub" x="585" y="82" text-anchor="middle">titles + files + file ids</text>
+    <g class="arrow"><path d="M180 68H246" marker-end="url(#ah)"/><path d="M420 68H486" marker-end="url(#ah)"/></g>
+    <text x="10" y="142" font-weight="600">Anyone allowed, any time</text>
+    <rect class="node" x="10" y="156" width="170" height="64" rx="10"/><text x="95" y="183" text-anchor="middle" font-weight="600">Type a title</text><text class="sub" x="95" y="202" text-anchor="middle">any words, any order</text>
+    <rect class="node" x="250" y="156" width="170" height="64" rx="10"/><text x="335" y="183" text-anchor="middle" font-weight="600">Tap through</text><text class="sub" x="335" y="202" text-anchor="middle">season, episode, quality</text>
+    <rect class="node" x="490" y="156" width="190" height="64" rx="10"/><text x="585" y="183" text-anchor="middle" font-weight="600">Receive the video</text><text class="sub" x="585" y="202" text-anchor="middle">instant, from Telegram</text>
+    <g class="arrow"><path d="M180 188H246" marker-end="url(#ah)"/><path d="M420 188H486" marker-end="url(#ah)"/><path d="M585 156V104" marker-end="url(#ah)" stroke-dasharray="5 4"/></g>
+    <text class="sub" x="700" y="118" style="fill:var(--ink2)">If Telegram says the stored file id is</text><text class="sub" x="700" y="136" style="fill:var(--ink2)">stale, the bot re-fetches the post from</text><text class="sub" x="700" y="154" style="fill:var(--ink2)">the channel and tries again.</text>
+  </svg>
+</section>
+
+<section aria-labelledby="setup">
+  <h2 id="setup">Set it up</h2>
+  <p class="muted">You need Python 3.10 or newer. Five steps, about ten minutes.</p>
+  <ol class="steps">
+    <li><h3>Get an <code>api_id</code> and <code>api_hash</code></h3>
+      <ol><li>Open <b>my.telegram.org</b> and sign in with your phone number.</li><li>Choose <b>API development tools</b> and create an application (any name, platform "Other").</li><li>Copy the <b>api_id</b> (a number) and the <b>api_hash</b> (32 characters). Keep them secret.</li></ol></li>
+    <li><h3>Create the bot</h3>
+      <ol><li>In Telegram, open <b>@BotFather</b> and send <code>/newbot</code>.</li><li>Copy the token it gives you (like <code>123456789:AA...</code>). A bot token is required: only bots can show the buttons.</li></ol></li>
+    <li><h3>Make the storage channel</h3>
+      <ol><li>Create a <b>private channel</b> and post one video to it.</li><li>Channel settings, <b>Administrators</b>, add your bot (default rights are enough).</li><li>Find the channel id: a private post link looks like <code>t.me/c/1234567890/5</code>, so the id is <code>-100</code> + that number: <code>-1001234567890</code>.</li></ol></li>
+    <li><h3>Configure</h3>
+<pre>python -m venv .venv &amp;&amp; source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env      # then fill it in</pre>
+      <div class="scroll" style="margin-top:10px"><table>
+        <tr><th>Setting</th><th>What to put</th></tr>
+        <tr><td><code>API_ID</code>, <code>API_HASH</code></td><td>from step 1</td></tr>
+        <tr><td><code>BOT_TOKEN</code></td><td>from step 2</td></tr>
+        <tr><td><code>STORAGE_CHANNEL_ID</code></td><td>from step 3 (starts with <code>-100</code>)</td></tr>
+        <tr><td><code>ALLOWED_USER_IDS</code></td><td>optional: user ids allowed to use the bot (get yours from @userinfobot). Empty means anyone who finds it</td></tr>
+        <tr><td><code>ADMIN_IDS</code></td><td>optional: ids that may use <code>/stats</code> and <code>/reindex</code> and are told about problems</td></tr>
+      </table></div></li>
+    <li><h3>Start it</h3>
+<pre>python bot.py</pre>
+      <p style="margin-top:8px">The database is created from <code>schema.sql</code> on the first start. (To do it by hand: <code>sqlite3 library.db &lt; schema.sql</code>.) Open your bot in Telegram, press <b>Start</b>, and send a title. To index videos that were already in the channel, send <code>/reindex</code> as an admin.</p></li>
+  </ol>
+</section>
+
+<section aria-labelledby="captions">
+  <h2 id="captions">Write the captions</h2>
+  <p>Each video needs a caption that says what it is. Either style works.</p>
+  <div class="pair">
+    <div><h3>YAML block (recommended)</h3>
+<pre>---
+title: "Attack on Titan"
+type: Anime
+year: 2013
+season: 1
+episode: 1
+resolution: 1080p
+genres: [Action, Fantasy]
+---</pre></div>
+    <div><h3>Plain lines</h3>
+<pre>Title: Attack on Titan
+Type: Anime
+Year: 2013
+Season: 1
+Episode: 1
+Resolution: 1080p
+#Action #Fantasy</pre></div>
+  </div>
+  <ul class="tight" style="margin-top:16px">
+    <li><b>A title is required.</b> A post without one is skipped and the admins get a message naming the post. Edit its caption and it is indexed.</li>
+    <li><b>Types:</b> Movie, Anime or Show (<code>tv</code>, <code>series</code>, <code>film</code> also work). A missing type is guessed (Show if there is a season or episode, otherwise Movie, never Anime).</li>
+    <li>Bad values are ignored, not stored: a year outside 1880 to five years ahead, a negative or non-numeric season or episode.</li>
+    <li>The same title, type and year is one entry however many episodes or qualities you upload. "Dune" 1984 and "Dune" 2021 stay separate.</li>
+    <li>Audio versions: put them in the resolution text, for example <code>resolution: 1080p Dub</code>.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="use">
+  <h2 id="use">What people see</h2>
+  <p>A simulated conversation, produced by the real handlers with a fake Telegram, so you can see the flow without running anything. <b>This is not a screenshot of Telegram.</b></p>
+  <div class="chat" role="img" aria-label="Simulated chat: a user searches for titan attack, opens Attack on Titan, picks season 1 and episode 2, and receives the video.">
+    <span class="tag">simulated</span>
+    <div class="msg me">titan attack</div>
+    <div class="msg bot">Found <b>1</b> title for <b>titan attack</b>.<div class="kb"><div><span class="tapped">&#127800; Attack on Titan (2013)</span></div></div></div>
+    <div class="msg bot"><b>Attack on Titan (2013)</b> &middot; Anime<br><i>Action, Fantasy</i><br>Choose a season:<div class="kb"><div><span class="tapped">Season 1 &middot; 2</span><span>Season 2 &middot; 1</span></div><div><span>&lsaquo; Back to results</span></div></div></div>
+    <div class="msg bot"><b>Attack on Titan (2013)</b> &middot; Anime<br><i>Action, Fantasy</i> &middot; Season 1<br>Choose an episode:<div class="kb"><div><span>E1</span><span class="tapped">E2</span></div><div><span>&lsaquo; Back to seasons</span></div></div></div>
+    <div class="msg bot"><div class="file"><div class="ico">&#9654;</div><div><b>video</b><br>Attack on Titan (2013) &middot; S01E02 &middot; 1080p</div></div></div>
+    <div class="msg me">dune</div>
+    <div class="msg bot"><b>Dune (2021)</b> &middot; Movie<br><i>Sci-Fi, Adventure</i><br>Choose a quality:<div class="kb"><div><span class="tapped">4K</span><span>1080p</span></div></div></div>
+    <div class="msg bot"><div class="file"><div class="ico">&#9654;</div><div><b>video</b><br>Dune (2021) &middot; 4K</div></div></div>
+  </div>
+  <p class="note">A movie with one file is sent straight away. Long series are paged 50 episodes at a time.</p>
+
+  <h3 style="margin-top:28px">Commands</h3>
+  <div class="scroll"><table>
+    <tr><th>Command</th><th>Who</th><th>What it does</th></tr>
+    <tr><td>any text, or <code>/search words</code></td><td>allowed users</td><td>find titles containing every word, in any order and case</td></tr>
+    <tr><td><code>/start</code>, <code>/help</code></td><td>allowed users</td><td>short help</td></tr>
+    <tr><td><code>/stats</code></td><td>admins</td><td>how many titles and files are in the library</td></tr>
+    <tr><td><code>/reindex [first] [last]</code></td><td>admins</td><td>read the channel's posts by id and index them; stops after 300 empty ids in a row</td></tr>
+  </table></div>
+</section>
+
+<section aria-labelledby="trouble">
+  <h2 id="trouble">When something goes wrong</h2>
+  <div class="scroll"><table>
+    <tr><th>What you see</th><th>What it means and what to do</th></tr>
+    <tr><td>The bot says it cannot reach the storage channel</td><td>Make sure the bot is an <b>administrator</b> of the channel and the id starts with <code>-100</code>. Then post anything in the channel once, so the bot learns it.</td></tr>
+    <tr><td>An admin message: "Skipped message 106"</td><td>That post's caption has no title. Edit the caption; the bot indexes it when it sees the edit.</td></tr>
+    <tr><td>A video is not found by search</td><td>It was posted before the bot joined: send <code>/reindex</code>. Or its caption was skipped (see above).</td></tr>
+    <tr><td>"Sorry, that file is no longer available."</td><td>The post was deleted from the channel. The bot forgot the file and told the admins. Upload it again.</td></tr>
+    <tr><td>"Telegram is limiting this bot"</td><td>Telegram asked the bot to wait more than five minutes. Try again after the time shown.</td></tr>
+    <tr><td>"That search has expired"</td><td>The bot restarted since that menu was shown. Send your search again.</td></tr>
+    <tr><td>"This library is private."</td><td>Your user id is not in <code>ALLOWED_USER_IDS</code>.</td></tr>
+  </table></div>
+</section>
+
+<section aria-labelledby="limits">
+  <h2 id="limits">Limits to know about</h2>
+  <ul class="tight">
+    <li>Never run against real Telegram (see the top of this page).</li>
+    <li>Search matches words in the title only, not genre, year or description.</li>
+    <li>The specified schema makes message ids unique on their own, so the library supports one storage channel.</li>
+    <li>I changed a few things from the original specification (a unique index on titles, <code>pyyaml</code> in the requirements, validated caption fields). They are listed in the README.</li>
+    <li>Whether sharing a given video is allowed is your responsibility.</li>
+  </ul>
+</section>
+
+</main>
+</body>
+</html>

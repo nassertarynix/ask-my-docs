@@ -142,7 +142,7 @@ schema.sql    the database definition
 tests/        226 tests, no network     scripts/walkthrough.py   a simulated conversation
 ```
 
-Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). A one-page illustrated guide (setup, captions, a simulated chat, troubleshooting) is [`docs/guide.html`](docs/guide.html); download it and open it in a browser.
 
 ## Tests
 
