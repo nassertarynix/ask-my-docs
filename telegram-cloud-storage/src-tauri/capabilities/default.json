@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The main window may call the commands this app defines and nothing else.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

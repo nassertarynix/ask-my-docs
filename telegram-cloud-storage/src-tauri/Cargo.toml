@@ -1,0 +1,20 @@
+[package]
+name = "telegram-cloud-storage"
+version = "0.1.0"
+description = "Desktop shell for Telegram Cloud Storage: starts the Python backend and shows the React interface"
+edition = "2021"
+license = "MIT"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+getrandom = "0.2"
+
+[profile.release]
+lto = true
+opt-level = "s"
+codegen-units = 1
+strip = true

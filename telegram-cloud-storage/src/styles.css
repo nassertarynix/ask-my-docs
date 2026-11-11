@@ -1,0 +1,88 @@
+@import 'tailwindcss';
+
+/* Cool slate neutrals with one deep-cyan accent. A file manager is mostly neutral, so the accent is kept for selection,
+   the primary action and progress. Light and dark follow the system (Tailwind's default `dark:` is prefers-color-scheme). */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --color-canvas: #f6f8fa;
+  --color-panel: #ffffff;
+  --color-sunken: #eef2f6;
+  --color-line: #dde3ea;
+  --color-ink: #17212b;
+  --color-ink-2: #55616f;
+  --color-ink-3: #8794a3;
+  --color-accent: #0e7490;
+  --color-accent-strong: #0b5c73;
+  --color-accent-wash: #dcf1f6;
+  --color-good: #15803d;
+  --color-warn: #b45309;
+  --color-bad: #b91c1c;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: #0d1319;
+    --color-panel: #141c24;
+    --color-sunken: #1b2631;
+    --color-line: #263341;
+    --color-ink: #e6edf3;
+    --color-ink-2: #a3b1bf;
+    --color-ink-3: #6f7f90;
+    --color-accent: #3cc3de;
+    --color-accent-strong: #7fd8ea;
+    --color-accent-wash: #12313b;
+    --color-good: #4ade80;
+    --color-warn: #fbbf24;
+    --color-bad: #f87171;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden; /* the app is a window: only the file list scrolls */
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+dialog {
+  color: inherit;
+}
+
+dialog::backdrop {
+  background: rgb(8 14 20 / 55%);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

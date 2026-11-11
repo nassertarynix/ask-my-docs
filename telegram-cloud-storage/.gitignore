@@ -1,0 +1,17 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+__pycache__/
+.pytest_cache/
+.venv/
+*.db
+*.db-wal
+*.db-shm
+*.session
+config.json
+src-tauri/target/
+src-tauri/gen/
+src-tauri/binaries/
+.env
+.e2e/
