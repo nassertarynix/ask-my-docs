@@ -32,6 +32,14 @@ USER taps [Season 1 · 2]
 USER taps [E2]
   BOT sends a video (file_id BAADAgADZTJ5AA...) with caption: Attack on Titan (2013) · S01E02 · 1080p
 
+== Searching by genre, year and type ==
+USER: action 2013
+  BOT: Found 1 title for action 2013.  [🌸 Attack on Titan (2013)]
+USER: sci-fi movie
+  BOT: Found 1 title for sci-fi movie.  [🎬 Dune (2021)]
+USER: anime
+  BOT: Found 1 title for anime.  [🌸 Attack on Titan (2013)]
+
 == A movie in two qualities ==
 USER: dune
 

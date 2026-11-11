@@ -67,12 +67,12 @@ ul.tight{margin:0;padding-left:20px;max-width:70ch}ul.tight li{margin-bottom:6px
 <header>
   <h1>Telegram Media Library Bot</h1>
   <p class="lede">Post videos to a private channel with a short caption. The bot files them in a database, and people find them by typing a title and tapping through season and episode.</p>
-  <div class="chips"><span class="chip">Python</span><span class="chip">Telethon (MTProto)</span><span class="chip">SQLite</span><span class="chip">up to 2 GB files</span><span class="chip">226 tests</span></div>
+  <div class="chips"><span class="chip">Python</span><span class="chip">Telethon (MTProto)</span><span class="chip">SQLite</span><span class="chip">up to 2 GB files</span><span class="chip">236 tests</span></div>
 </header>
 
 <section aria-labelledby="status">
   <h2 id="status">Where it stands</h2>
-  <div class="box warn"><b>Never run against real Telegram.</b> There were no Telegram credentials where it was built. All 226 tests pass offline, using real Telethon message objects and a fake client, and the chat below is simulated the same way. Expect small fixes the first time you connect a real bot.</div>
+  <div class="box warn"><b>Never run against real Telegram.</b> There were no Telegram credentials where it was built. All 236 tests pass offline, using real Telethon message objects and a fake client, and the chat below is simulated the same way. Expect small fixes the first time you connect a real bot.</div>
   <p class="muted" style="margin-top:12px">Use it only for media you have the right to share, and keep it private: set <code>ALLOWED_USER_IDS</code> to the people you choose.</p>
 </section>
 
@@ -150,6 +150,7 @@ Resolution: 1080p
     <li><b>Types:</b> Movie, Anime or Show (<code>tv</code>, <code>series</code>, <code>film</code> also work). A missing type is guessed (Show if there is a season or episode, otherwise Movie, never Anime).</li>
     <li>Bad values are ignored, not stored: a year outside 1880 to five years ahead, a negative or non-numeric season or episode.</li>
     <li>The same title, type and year is one entry however many episodes or qualities you upload. "Dune" 1984 and "Dune" 2021 stay separate.</li>
+    <li><b>Year and genres make titles searchable by them.</b> They are part of the caption you already write; searching adds no extra upload step.</li>
     <li>Audio versions: put them in the resolution text, for example <code>resolution: 1080p Dub</code>.</li>
   </ul>
 </section>
@@ -164,6 +165,8 @@ Resolution: 1080p
     <div class="msg bot"><b>Attack on Titan (2013)</b> &middot; Anime<br><i>Action, Fantasy</i><br>Choose a season:<div class="kb"><div><span class="tapped">Season 1 &middot; 2</span><span>Season 2 &middot; 1</span></div><div><span>&lsaquo; Back to results</span></div></div></div>
     <div class="msg bot"><b>Attack on Titan (2013)</b> &middot; Anime<br><i>Action, Fantasy</i> &middot; Season 1<br>Choose an episode:<div class="kb"><div><span>E1</span><span class="tapped">E2</span></div><div><span>&lsaquo; Back to seasons</span></div></div></div>
     <div class="msg bot"><div class="file"><div class="ico">&#9654;</div><div><b>video</b><br>Attack on Titan (2013) &middot; S01E02 &middot; 1080p</div></div></div>
+    <div class="msg me">action 2013</div>
+    <div class="msg bot">Found <b>1</b> title for <b>action 2013</b>.<div class="kb"><div><span class="tapped">&#127800; Attack on Titan (2013)</span></div></div></div>
     <div class="msg me">dune</div>
     <div class="msg bot"><b>Dune (2021)</b> &middot; Movie<br><i>Sci-Fi, Adventure</i><br>Choose a quality:<div class="kb"><div><span class="tapped">4K</span><span>1080p</span></div></div></div>
     <div class="msg bot"><div class="file"><div class="ico">&#9654;</div><div><b>video</b><br>Dune (2021) &middot; 4K</div></div></div>
@@ -173,7 +176,7 @@ Resolution: 1080p
   <h3 style="margin-top:28px">Commands</h3>
   <div class="scroll"><table>
     <tr><th>Command</th><th>Who</th><th>What it does</th></tr>
-    <tr><td>any text, or <code>/search words</code></td><td>allowed users</td><td>find titles containing every word, in any order and case</td></tr>
+    <tr><td>any text, or <code>/search words</code></td><td>allowed users</td><td>search by title, genre, year or type: <code>attack titan</code>, <code>action 2013</code>, <code>sci-fi movie</code>, <code>anime</code>. Every word must match something</td></tr>
     <tr><td><code>/start</code>, <code>/help</code></td><td>allowed users</td><td>short help</td></tr>
     <tr><td><code>/stats</code></td><td>admins</td><td>how many titles and files are in the library</td></tr>
     <tr><td><code>/reindex [first] [last]</code></td><td>admins</td><td>read the channel's posts by id and index them; stops after 300 empty ids in a row</td></tr>
@@ -198,7 +201,7 @@ Resolution: 1080p
   <h2 id="limits">Limits to know about</h2>
   <ul class="tight">
     <li>Never run against real Telegram (see the top of this page).</li>
-    <li>Search matches words in the title only, not genre, year or description.</li>
+    <li>Search matches a title's name, genre, year and type, not descriptions. A title can be found by genre or year only if its caption has them (<code>year:</code>, <code>genres:</code> or <code>#hashtags</code>).</li>
     <li>The specified schema makes message ids unique on their own, so the library supports one storage channel.</li>
     <li>I changed a few things from the original specification (a unique index on titles, <code>pyyaml</code> in the requirements, validated caption fields). They are listed in the README.</li>
     <li>Whether sharing a given video is allowed is your responsibility.</li>

@@ -22,6 +22,8 @@ SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 SCHEMA_VERSION = 1
 QUALITY_RANK = {"4K": 0, "2160p": 0, "1440p": 1, "1080p": 2, "720p": 3, "576p": 4, "480p": 5, "360p": 6}
 MAX_SEARCH_TOKENS = 6
+TYPE_WORDS = {"movie": "Movie", "movies": "Movie", "film": "Movie", "films": "Movie", "anime": "Anime", "show": "Show",
+              "shows": "Show", "series": "Show", "tv": "Show"}
 
 
 @dataclass(frozen=True)
@@ -225,27 +227,44 @@ class Database:
 
     # ---- reading ------------------------------------------------------------------------------------------------------
     @staticmethod
-    def _search_where(query: str) -> tuple[str, list[str], list[str]]:
+    def _search_where(query: str) -> tuple[str, list[Any], list[str], str, list[str]]:
+        """SQL for a search. Every word of the query must match *something* about the title: its name, its genre, its release
+        year (a 4-digit word) or its type (movie, anime, show). So `action 2013` finds action titles released in 2013."""
         tokens = [t for t in query.casefold().split() if t][:MAX_SEARCH_TOKENS]
-        where = " AND ".join("casefold(m.title) LIKE ? ESCAPE '\\'" for _ in tokens)
-        return where, [like_pattern(t) for t in tokens], tokens
+        clauses: list[str] = []
+        params: list[Any] = []
+        for t in tokens:
+            parts = ["casefold(m.title) LIKE ? ESCAPE '\\'", "casefold(COALESCE(m.genre, '')) LIKE ? ESCAPE '\\'"]
+            values: list[Any] = [like_pattern(t), like_pattern(t)]
+            if re.fullmatch(r"\d{4}", t):  # \d on purpose: a year typed in Arabic-Indic digits (\u0662\u0660\u0661\u0663) means 2013 too
+                parts.append("m.release_year = ?")
+                values.append(int(t))
+            if t in TYPE_WORDS:
+                parts.append("m.type = ?")
+                values.append(TYPE_WORDS[t])
+            clauses.append("(" + " OR ".join(parts) + ")")
+            params += values
+        in_title = " AND ".join("casefold(m.title) LIKE ? ESCAPE '\\'" for _ in tokens)
+        return " AND ".join(clauses), params, tokens, in_title, [like_pattern(t) for t in tokens]
 
     async def search(self, query: str, limit: int = 8, offset: int = 0) -> tuple[list[dict], int]:
-        """Titles containing every word of `query` (any order, any case), best matches first, and the total number found."""
-        where, patterns, tokens = self._search_where(query)
+        """Titles matching every word of `query` (any order, any case) by name, genre, year or type, and the total found.
+        Best first: exact title, title starting with the query, all words in the title, then matches through genre or year."""
+        where, params, tokens, in_title, title_params = self._search_where(query)
         if not tokens:
             return [], 0
         whole = " ".join(tokens)
 
         def run(c: sqlite3.Connection) -> tuple[list[dict], int]:
             base = f"FROM media m WHERE {where} AND EXISTS (SELECT 1 FROM media_files f WHERE f.media_id = m.id)"
-            total = c.execute(f"SELECT COUNT(*) {base}", patterns).fetchone()[0]
+            total = c.execute(f"SELECT COUNT(*) {base}", params).fetchone()[0]
             rows = c.execute(
                 f"""SELECT m.id, m.title, m.type, m.release_year, m.genre,
                            (SELECT COUNT(*) FROM media_files f WHERE f.media_id = m.id) AS file_count {base}
-                    ORDER BY CASE WHEN casefold(m.title) = ? THEN 0 WHEN casefold(m.title) LIKE ? ESCAPE '\\' THEN 1 ELSE 2 END,
+                    ORDER BY CASE WHEN casefold(m.title) = ? THEN 0 WHEN casefold(m.title) LIKE ? ESCAPE '\\' THEN 1
+                                  WHEN {in_title} THEN 2 ELSE 3 END,
                              m.title COLLATE NOCASE, m.release_year
-                    LIMIT ? OFFSET ?""", (*patterns, whole, like_pattern(whole, "prefix"), limit, offset)).fetchall()
+                    LIMIT ? OFFSET ?""", (*params, whole, like_pattern(whole, "prefix"), *title_params, limit, offset)).fetchall()
             return [dict(r) for r in rows], total
 
         return await self._read(run)

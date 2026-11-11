@@ -299,3 +299,78 @@ async def test_max_message_id(db):
     assert await db.max_message_id(CH) == 0
     await add(db, "A", mid=77)
     assert await db.max_message_id(CH) == 77
+
+
+# ---- searching by genre, year and type ----------------------------------------------------------------------------------------
+async def library_for_filters(db):
+    await add(db, "Attack on Titan", "Anime", 2013, season=1, episode=1, genre="Action, Fantasy")
+    await add(db, "Dune", "Movie", 2021, genre="Sci-Fi, Adventure")
+    await add(db, "Blade Runner", "Movie", 1982, genre="Sci-Fi, Thriller")
+    await add(db, "Breaking Bad", "Show", 2008, season=1, episode=1, genre="Crime, Drama")
+    await add(db, "No Metadata", "Movie")  # no year, no genre
+    await add(db, "Action Jackson", "Movie", 1988, genre="Comedy")
+    await add(db, "The Last Action Hero", "Movie", 1993, genre="Comedy")
+
+
+def titles(result):
+    return [r["title"] for r in result[0]]
+
+
+async def test_a_genre_word_finds_titles_of_that_genre(db):
+    await library_for_filters(db)
+    assert titles(await db.search("fantasy")) == ["Attack on Titan"]
+    assert sorted(titles(await db.search("sci-fi"))) == ["Blade Runner", "Dune"]
+    assert titles(await db.search("THRILLER")) == ["Blade Runner"]
+
+
+async def test_a_year_finds_titles_released_that_year(db):
+    await library_for_filters(db)
+    assert titles(await db.search("2013")) == ["Attack on Titan"]
+    assert titles(await db.search("1982")) == ["Blade Runner"]
+    assert (await db.search("1999"))[1] == 0
+
+
+async def test_a_type_word_finds_that_type_including_its_aliases(db):
+    await library_for_filters(db)
+    assert titles(await db.search("anime")) == ["Attack on Titan"]
+    assert sorted(titles(await db.search("movies"))) == ["Action Jackson", "Blade Runner", "Dune", "No Metadata", "The Last Action Hero"]
+    assert titles(await db.search("series")) == ["Breaking Bad"] and titles(await db.search("tv")) == ["Breaking Bad"]
+
+
+async def test_every_word_must_match_something_so_filters_narrow_the_results(db):
+    await library_for_filters(db)
+    assert titles(await db.search("sci-fi 2021")) == ["Dune"]
+    assert titles(await db.search("sci-fi movie")) == ["Blade Runner", "Dune"]
+    assert titles(await db.search("sci-fi 2013")) == []
+    assert titles(await db.search("dune 2021")) == ["Dune"] and titles(await db.search("dune 2013")) == []
+    assert titles(await db.search("action anime")) == ["Attack on Titan"]
+
+
+async def test_title_matches_rank_before_genre_matches(db):
+    await library_for_filters(db)
+    # exact/prefix title match, then "contains it in the title", then matches only through the genre
+    assert titles(await db.search("action")) == ["Action Jackson", "The Last Action Hero", "Attack on Titan"]
+
+
+async def test_titles_without_a_year_or_genre_are_still_found_by_name_and_do_not_break_filters(db):
+    await library_for_filters(db)
+    assert titles(await db.search("metadata")) == ["No Metadata"]
+    assert "No Metadata" not in titles(await db.search("sci-fi")) and "No Metadata" not in titles(await db.search("2013"))
+
+
+async def test_a_year_typed_in_arabic_indic_digits_finds_the_same_titles(db):
+    await library_for_filters(db)
+    assert titles(await db.search("\u0662\u0660\u0661\u0663")) == ["Attack on Titan"]
+
+
+async def test_a_number_that_is_not_a_year_only_matches_text(db):
+    await add(db, "Apollo 13", "Movie", 1995)
+    await add(db, "1917", "Movie", 2019)
+    assert titles(await db.search("13")) == ["Apollo 13"]
+    assert sorted(titles(await db.search("1917"))) == ["1917"]
+    assert titles(await db.search("2019")) == ["1917"]
+
+
+async def test_wildcards_in_a_genre_search_are_literal(db):
+    await add(db, "A", "Movie", genre="Sci-Fi")
+    assert (await db.search("%"))[1] == 0 and (await db.search("s_"))[1] == 0

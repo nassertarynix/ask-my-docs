@@ -175,5 +175,6 @@ def file_caption(file: dict) -> str:
 HELP_TEXT = (
     "<b>Media library</b>\n"
     "Send me part of a title, or use <code>/search attack titan</code>, and pick it from the list.\n"
+    "You can also search by genre, year or type: <code>action 2013</code>, <code>sci-fi movie</code>, <code>anime</code>.\n"
     "Movies are sent straight away; shows and anime let you choose a season, then an episode."
 )

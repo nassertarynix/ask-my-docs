@@ -93,6 +93,12 @@ async def main() -> None:
     sid = client.sent[-1][1]
     say(f"  BOT sends a video (file_id {sid[:14]}...) with caption: {plain(client.sent[-1][2])}" if not problem else f"  BOT: {problem}")
 
+    say("\n== Searching by genre, year and type ==")
+    for query in ("action 2013", "sci-fi movie", "anime"):
+        say(f"USER: {query}")
+        found = await bot.command_reply(1, query)
+        say("  BOT: " + plain(found.text).replace("\n", " ") + "  " + " ".join(f"[{label}]" for row in found.keyboard for label, _ in row))
+
     say("\n== A movie in two qualities ==")
     say("USER: dune")
     results = await bot.command_reply(1, "dune")

@@ -437,3 +437,14 @@ async def test_button_handler_edits_menus_answers_alerts_and_ignores_stale_press
     bot.cooldown.hit(1)
     await on_button(again)
     assert again.answers[0][1] is True
+
+
+async def test_users_can_search_by_genre_year_and_type_in_one_message(bot):
+    await post(bot, 1, yaml_caption("Attack on Titan", "Anime", 2013, season=1, episode=1, genres="[Action, Fantasy]"))
+    await post(bot, 2, yaml_caption("Dune", "Movie", 2021, genres="[Sci-Fi]"))
+    await post(bot, 3, "Title: Blade Runner\nType: Movie\nYear: 1982\n#SciFi #Thriller")
+    for text, expected in (("action 2013", "Attack on Titan"), ("sci-fi movie 2021", "Dune"), ("scifi", "Blade Runner"), ("anime", "Attack on Titan")):
+        reply = await bot.command_reply(1, text)
+        assert expected in reply.keyboard[0][0][0], text
+    assert "No titles match" in (await bot.command_reply(1, "action 1999")).text
+    assert "genre, year or type" in (await bot.command_reply(1, "/help")).text

@@ -8,7 +8,7 @@ Keep claims honest: it has never run against real Telegram (see README).
 
 ## Commands
 ```bash
-pytest -q                          # 226 tests, offline (pip install -r requirements-dev.txt)
+pytest -q                          # 236 tests, offline (pip install -r requirements-dev.txt)
 python scripts/walkthrough.py      # simulated conversation; rewrites docs/walkthrough.txt
 python bot.py                      # needs a real .env (never commit it)
 ```
@@ -26,6 +26,7 @@ python bot.py                      # needs a real .env (never commit it)
 - Callback data: ASCII only (`re.ASCII`), strict shapes, `decode` never raises. Telegram limits: 64 bytes per callback, 100 buttons per message.
 - Sending goes through `delivery.send_media_file`: refresh a stale file_id from the channel, store it, fall back to the media object, sleep out flood waits, never retry blocked users.
   A flood wait during the refresh must retry the refresh, not resend the stale id (regression test).
+- Search: every word must match the title, genre, a 4-digit year (`\d`, so Arabic-Indic digits work on purpose) or a type word; title matches rank before genre-only matches.
 - Access control (`ALLOWED_USER_IDS`, admin-only commands), the per-person cooldown and the double-tap guard are tested; do not weaken them.
 - Secrets: `.env`, `*.session` and `*.db` are git-ignored. `Config` masks the hash and token in repr.
 

@@ -55,6 +55,10 @@ send_file(chat, stored file_id)
    network error            -> 2, 4, 8 s backoff, then give up
 ```
 
+## Search
+
+The query is split into words (at most six). Every word must match at least one of: the title (substring, case-folded so it works beyond ASCII), the genre, the release year (if the word is four digits), or the type (`movie`, `movies`, `film`, `anime`, `show`, `shows`, `series`, `tv`). LIKE wildcards typed by the user are escaped. Results are ordered: exact title, title starting with the query, every word in the title, then matches found only through genre, year or type.
+
 ## Menus
 
 Callback data is a short ASCII code (Telegram allows 64 bytes): `s:<token>:<page>`, `m:<media>`, `t:<media>:<season>:<page>`, `e:<media>:<season>:<episode>`, `q:<file>`. `menus.decode` accepts only exactly these shapes (digits are ASCII only), so forged data is rejected. Search text is kept in a small in-memory store so that paging and Back can find it again.

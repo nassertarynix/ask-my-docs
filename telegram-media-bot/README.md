@@ -17,7 +17,7 @@ A simulated conversation using the real code is in [`docs/walkthrough.txt`](docs
 
 - **Ingestion.** The bot is an administrator of your storage channel. Every new video (or video sent as a document) is parsed, and its title, season,
   episode and quality are stored together with the Telegram `file_id`, the `message_id` and the `channel_id`. Edited captions update the entry; deleted posts remove it.
-- **Search.** Any plain message, or `/search attack titan`, finds titles containing every word, in any order and case (also for non-Latin scripts).
+- **Search.** Any plain message, or `/search attack titan`, finds titles. Every word must match something about the title: its name, its genre, its release year (a 4-digit word) or its type (`movie`, `anime`, `show`). So `action 2013`, `sci-fi movie` and `anime` all work, in any order and case, also for non-Latin scripts. Matches on the title itself are listed first.
 - **Menus.** Movie: sent straight away (a choice of quality if there are several files). Anime or show: seasons, then an episode grid (paged for long series), then a quality if needed.
 - **Stale `file_id`s.** If Telegram rejects a stored `file_id` or file reference, the bot fetches the post from the storage channel by `message_id`, stores the fresh id and retries. If the post is gone, the entry is removed and the admins are told.
 - **Flood limits.** `FLOOD_WAIT_X` is waited out (up to 5 minutes; longer is reported to the user), brief network errors are retried with backoff, and each person can request one file every 2 seconds.
@@ -124,7 +124,7 @@ Rules the parser follows:
 
 | Command | Who | What |
 | --- | --- | --- |
-| a plain message, or `/search words` | allowed users | search titles |
+| a plain message, or `/search words` | allowed users | search by title, genre, year or type (`action 2013`) |
 | `/start`, `/help` | allowed users | short help |
 | `/stats` | admins | number of titles and files |
 | `/reindex [first_id] [last_id]` | admins | read the channel's posts by id and index them; stops after 300 empty ids in a row |
@@ -139,7 +139,7 @@ delivery.py   sending a file, the file_id refresh fallback, flood-wait handling
 menus.py      inline keyboards and callback codes (pure functions)
 config.py     settings from .env
 schema.sql    the database definition
-tests/        226 tests, no network     scripts/walkthrough.py   a simulated conversation
+tests/        236 tests, no network     scripts/walkthrough.py   a simulated conversation
 ```
 
 Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). A one-page illustrated guide (setup, captions, a simulated chat, troubleshooting) is [`docs/guide.html`](docs/guide.html); download it and open it in a browser.
@@ -148,17 +148,17 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). A one-page illustrated 
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q          # 226 tests, no Telegram account or network needed
+pytest -q          # 236 tests, no Telegram account or network needed
 python scripts/walkthrough.py
 ```
 
 | Area | Tests | Covers |
 | --- | --- | --- |
 | `parser.py` | 66 | the specification's example, fenced and legacy captions, normalisation of types/resolutions/years/seasons, broken or hostile YAML, 800 random inputs never raise |
-| `database.py` | 39 | foreign keys on every connection, schema as specified, de-duplication rules, edits, deletes with cascade, Unicode and wildcard-safe search, ranking, paging, concurrency |
+| `database.py` | 48 | foreign keys on every connection, schema as specified, de-duplication rules, edits, deletes with cascade, Unicode and wildcard-safe search by title, genre, year and type, ranking, paging, concurrency |
 | `menus.py` | 39 | callback codes round-trip and reject forged input, 64-byte and 100-button limits, HTML escaping |
 | `delivery.py` | 27 | stale file id refresh and its fallbacks, deleted posts, flood waits (including during the refresh), blocked users, channel errors, network backoff |
-| `bot.py` | 44 | ingestion from real Telethon message objects, edits, deletions, reindex, commands, access control, the full menu walk, throttling, Telethon handler wiring |
+| `bot.py` | 45 | ingestion from real Telethon message objects, edits, deletions, reindex, commands, access control, the full menu walk, throttling, Telethon handler wiring |
 | `config.py` | 11 | validation messages, secrets masked |
 
 Each protection (foreign keys, WAL, de-duplication, safe YAML, escaping, access control, the cooldown, the file-id refresh, the flood-wait sleep...) was switched off in turn to check that a test fails. That found two tests that passed anyway; both were fixed.
@@ -180,7 +180,7 @@ Each protection (foreign keys, WAL, de-duplication, safe YAML, escaping, access 
 
 ## Limitations
 
-- Titles are searched by words in the title only (not genre, year or description).
+- Search matches a title's name, genre, year and type, not descriptions. A title can only be found by genre or year if its caption has them: add `year:` and `genres:` (or `#hashtags`) when you post; there is no other step.
 - No audio-language column in the schema: put it in the resolution text (`1080p Dub`).
 - `telegram_message_id` is unique on its own in the specified schema, so the library supports one storage channel.
 - Search memory (for the Next and Back buttons) is in RAM: after a restart an old button says the search expired.
