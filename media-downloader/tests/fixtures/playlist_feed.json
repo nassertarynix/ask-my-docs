@@ -1,0 +1,5 @@
+{"_type": "playlist", "title": "Test feed", "extractor_key": "Generic", "playlist_count": 2,
+ "entries": [{"id": null, "title": "First clip", "url": "http://127.0.0.1:8899/clip.mp4", "_type": "url_transparent", "duration": 12.5},
+             {"id": null, "title": "Second clip", "url": "javascript:alert(1)", "_type": "url_transparent"},
+             "garbage-entry",
+             {"id": "abc", "title": "<img src=x onerror=1>", "webpage_url": "https://example.com/v/abc", "thumbnails": [{"url": "https://e.com/small.jpg"}, {"url": "ftp://bad/large.jpg"}, {"url": "https://e.com/big.jpg"}]}]}

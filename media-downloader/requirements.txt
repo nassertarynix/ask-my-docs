@@ -1,0 +1,6 @@
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+# yt-dlp is run as a separate process (never imported), but it must be installed: pip puts the `yt-dlp` command next to Python
+yt-dlp>=2024.8.6
+python-multipart>=0.0.9,<1
+# the live progress stream is written by hand (StreamingResponse), so sse-starlette is not needed

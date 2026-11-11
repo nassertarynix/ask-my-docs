@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This repository is a monorepo of five independent portfolio projects (five folders) by Al-Nasser Haddad (the owner; pronouns not
+This repository is a monorepo of six independent portfolio projects (six folders) by Al-Nasser Haddad (the owner; pronouns not
 stated, so avoid them). Work inside one project folder at a time and read that folder's own `CLAUDE.md` first:
 
 - `ask-my-docs/`: Python, local RAG tool (own `CLAUDE.md`, 150 pytest tests)
@@ -8,6 +8,7 @@ stated, so avoid them). Work inside one project folder at a time and read that f
 - `runway/`: TypeScript, a cash-flow forecast (own `CLAUDE.md`)
 - `telegram-cloud-storage/`: Tauri + React + Python, a file manager backed by a private Telegram channel (own `CLAUDE.md`)
 - `telegram-media-bot/`: Python + Telethon, a movie/anime library bot indexed in SQLite (own `CLAUDE.md`)
+- `media-downloader/`: Python (FastAPI) + one HTML page, a local yt-dlp downloader run as a subprocess (own `CLAUDE.md`)
 
 Rules for the monorepo as a whole:
 - **Each folder must stay self-contained.** No imports, scripts or paths may reach across folders: the owner will copy each

@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Media Downloader</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f59e0b'/%3E%3Cpath d='M32 14v26m0 0-10-10m10 10 10-10M18 50h28' stroke='%2309090b' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'], mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'] } } } };
+  </script>
+  <style>
+    /* a few things Tailwind's CDN build does not give for free */
+    /* Tailwind's display utilities (grid, flex) would otherwise beat the [hidden] attribute that the script uses to show and hide things */
+    [hidden] { display: none !important; }
+    /* grid items default to min-width:auto, so a long title or a wide input would push the whole page sideways on a phone */
+    .grid > *, .flex > * { min-width: 0; }
+    input, select { max-width: 100%; }
+    :focus-visible { outline: 2px solid #fbbf24; outline-offset: 2px; }
+    .bar { transition: width .25s ease; }
+    @media (prefers-reduced-motion: reduce) { .bar, .spin { transition: none !important; animation: none !important; } }
+    .tabular { font-variant-numeric: tabular-nums; }
+    input::placeholder { color: #71717a; }
+    select, input[type=text], input[type=url], input[type=search] { color-scheme: dark; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 font-sans antialiased min-h-screen">
+
+<header class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-30">
+  <div class="mx-auto max-w-5xl px-4 py-3 flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-2.5 mr-auto">
+      <span class="grid place-items-center h-8 w-8 rounded-lg bg-amber-500 text-zinc-950" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+      </span>
+      <h1 class="text-base font-semibold tracking-tight">Media Downloader</h1>
+    </div>
+    <div id="chips" class="flex flex-wrap items-center gap-2 text-xs" aria-label="System status"></div>
+    <button id="advanced-toggle" type="button" aria-expanded="false" aria-controls="advanced"
+            class="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-200 hover:bg-zinc-800">
+      <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      Advanced settings
+    </button>
+  </div>
+</header>
+
+<main class="mx-auto max-w-5xl px-4 py-6 flex flex-col gap-6">
+
+  <div id="banners" class="flex flex-col gap-3 empty:hidden" role="status"></div>
+
+  <!-- Advanced settings -->
+  <section id="advanced" hidden class="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5" aria-label="Advanced settings">
+    <form id="settings-form" class="grid gap-6 md:grid-cols-2" autocomplete="off">
+      <fieldset class="grid gap-3 content-start">
+        <legend class="text-sm font-semibold text-zinc-200 mb-1">Cookies</legend>
+        <p class="text-xs text-zinc-400">Needed for age-restricted or members-only videos, and when a site asks to prove you are not a bot.</p>
+        <label class="flex items-center gap-2 text-sm"><input type="radio" name="cookie-mode" value="none" class="accent-amber-500"> None</label>
+        <div class="grid gap-2">
+          <label class="flex items-center gap-2 text-sm"><input type="radio" name="cookie-mode" value="browser" class="accent-amber-500"> Use my browser's cookies</label>
+          <div class="grid grid-cols-2 gap-2 pl-6">
+            <label class="grid gap-1 text-xs text-zinc-400">Browser
+              <select id="cookie-browser" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100"></select></label>
+            <label class="grid gap-1 text-xs text-zinc-400">Profile (optional)
+              <input id="cookie-profile" type="text" placeholder="Default" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100"></label>
+          </div>
+        </div>
+        <div class="grid gap-2">
+          <label class="flex items-center gap-2 text-sm"><input type="radio" name="cookie-mode" value="file" class="accent-amber-500"> Use a cookies file (cookies.txt)</label>
+          <div class="grid gap-2 pl-6">
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="inline-flex cursor-pointer items-center rounded-lg border border-zinc-700 px-3 py-1.5 text-sm hover:bg-zinc-800">Upload file…
+                <input id="cookie-upload" type="file" accept=".txt,text/plain" class="sr-only"></label>
+              <button id="cookie-remove" type="button" hidden class="rounded-lg px-3 py-1.5 text-sm text-rose-300 hover:bg-zinc-800">Remove</button>
+              <span id="cookie-note" class="text-xs text-zinc-400"></span>
+            </div>
+            <label class="grid gap-1 text-xs text-zinc-400">…or the path of a file on this computer
+              <input id="cookie-path" type="text" placeholder="/home/you/cookies.txt" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100 font-mono"></label>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grid gap-3 content-start">
+        <legend class="text-sm font-semibold text-zinc-200 mb-1">Network</legend>
+        <label class="grid gap-1 text-xs text-zinc-400">Proxy (HTTP or SOCKS5)
+          <input id="proxy" type="text" placeholder="socks5://127.0.0.1:1080" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100 font-mono"></label>
+        <label class="grid gap-1 text-xs text-zinc-400">User agent
+          <input id="user-agent" type="text" placeholder="Leave empty to use yt-dlp's default" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100 font-mono">
+          <button id="ua-common" type="button" class="justify-self-start text-amber-300 hover:underline">Use a common browser user agent</button></label>
+        <label class="grid gap-1 text-xs text-zinc-400">Default download folder
+          <input id="default-dir" type="text" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100 font-mono"></label>
+        <label class="flex items-center gap-2 text-sm"><input id="embed-metadata" type="checkbox" class="accent-amber-500"> Write title and artist into the file</label>
+      </fieldset>
+
+      <div class="md:col-span-2 flex flex-wrap items-center gap-3 border-t border-zinc-800 pt-4">
+        <button id="settings-save" type="submit" class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400">Save settings</button>
+        <span id="settings-msg" class="text-sm" role="status"></span>
+        <div class="ml-auto flex flex-wrap items-center gap-3">
+          <span id="update-msg" class="text-sm text-zinc-400" role="status"></span>
+          <button id="update-ytdlp" type="button" class="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium hover:bg-zinc-800">
+            <span id="update-spinner" hidden class="spin h-4 w-4 animate-spin rounded-full border-2 border-zinc-500 border-t-amber-400" aria-hidden="true"></span>Update yt-dlp</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- 1. the link -->
+  <section aria-label="Link">
+    <form id="fetch-form" class="flex flex-col gap-2 sm:flex-row" novalidate>
+      <label for="url" class="sr-only">Video or playlist link</label>
+      <input id="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Paste a video or playlist link"
+             class="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-zinc-100 focus:border-amber-500">
+      <button id="fetch-btn" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-base font-semibold text-zinc-950 hover:bg-amber-400 disabled:opacity-70">
+        <span id="fetch-spinner" hidden class="spin h-4 w-4 animate-spin rounded-full border-2 border-zinc-900/40 border-t-zinc-900" aria-hidden="true"></span>
+        <span id="fetch-label">Fetch details</span>
+      </button>
+    </form>
+    <div id="fetch-error" hidden role="alert" class="mt-3 rounded-xl border border-rose-900 bg-rose-950/50 p-3 text-sm text-rose-200"></div>
+    <p class="mt-3 text-xs text-zinc-500">Only download what you have the right to download. Respect the site's terms and copyright.</p>
+  </section>
+
+  <!-- 2. details and options -->
+  <section id="details" hidden aria-label="Video details" class="rounded-2xl border border-zinc-800 bg-zinc-900/70">
+    <div class="grid gap-5 p-5 md:grid-cols-[16rem_1fr]">
+      <div>
+        <div id="d-thumb" class="aspect-video w-full overflow-hidden rounded-xl bg-zinc-800"></div>
+        <p id="d-meta" class="mt-3 text-xs text-zinc-400"></p>
+      </div>
+      <div class="grid gap-4 content-start">
+        <div>
+          <h2 id="d-title" class="text-lg font-semibold leading-snug break-words"></h2>
+          <p id="d-sub" class="mt-1 text-sm text-zinc-400"></p>
+        </div>
+
+        <div role="radiogroup" aria-label="What to download" class="inline-grid grid-cols-2 gap-1 rounded-xl bg-zinc-950 p-1 text-sm w-fit">
+          <label class="relative cursor-pointer rounded-lg px-4 py-1.5 text-center has-[:checked]:bg-zinc-800 has-[:checked]:text-amber-300"><input type="radio" name="mode" value="video" class="absolute inset-0 opacity-0 cursor-pointer" checked>Video</label>
+          <label class="relative cursor-pointer rounded-lg px-4 py-1.5 text-center has-[:checked]:bg-zinc-800 has-[:checked]:text-amber-300"><input type="radio" name="mode" value="audio" class="absolute inset-0 opacity-0 cursor-pointer">Audio only</label>
+        </div>
+
+        <div id="video-opts" class="grid gap-3 sm:grid-cols-3">
+          <label class="grid gap-1 text-xs text-zinc-400">Quality
+            <select id="quality" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100"></select></label>
+          <label class="grid gap-1 text-xs text-zinc-400">File type
+            <select id="container" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100">
+              <option value="">Automatic</option><option value="mp4">MP4</option><option value="mkv">MKV</option><option value="webm">WebM</option></select></label>
+          <label class="grid gap-1 text-xs text-zinc-400">Exact format (optional)
+            <select id="exact" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100"></select></label>
+        </div>
+        <div id="audio-opts" hidden class="grid gap-3 sm:grid-cols-3">
+          <label class="grid gap-1 text-xs text-zinc-400">Audio format
+            <select id="audio-format" class="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-2 text-sm text-zinc-100">
+              <option value="mp3">MP3</option><option value="m4a">M4A (AAC)</option><option value="flac">FLAC (lossless)</option><option value="opus">Opus</option>
+              <option value="wav">WAV (lossless)</option><option value="aac">AAC</option><option value="vorbis">Vorbis</option></select></label>
+          <p class="sm:col-span-2 self-end text-xs text-zinc-500">The best audio track is downloaded and converted with FFmpeg.</p>
+        </div>
+
+        <div class="grid gap-1">
+          <label for="out-path" class="text-xs text-zinc-400">Save to</label>
+          <div class="flex gap-2">
+            <input id="out-path" type="text" spellcheck="false" class="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 font-mono">
+            <button id="browse" type="button" class="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium hover:bg-zinc-800">
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Browse…</button>
+          </div>
+        </div>
+
+        <div id="entries-wrap" hidden class="grid gap-2">
+          <div class="flex items-center justify-between text-sm">
+            <label class="flex items-center gap-2"><input id="entries-all" type="checkbox" class="accent-amber-500" checked> <span id="entries-count"></span></label>
+            <span id="entries-note" class="text-xs text-zinc-500"></span>
+          </div>
+          <ul id="entries" class="max-h-56 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 divide-y divide-zinc-800 text-sm"></ul>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button id="download-btn" type="button" class="rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-amber-400 disabled:opacity-60">Download</button>
+          <span id="download-msg" class="text-sm" role="status"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. the queue -->
+  <section aria-label="Downloads">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-400">Downloads</h2>
+      <button id="clear-done" type="button" hidden class="text-xs text-zinc-400 hover:text-zinc-200">Clear finished</button>
+    </div>
+    <ul id="queue" class="flex flex-col gap-3"></ul>
+    <p id="queue-empty" class="rounded-2xl border border-dashed border-zinc-800 p-8 text-center text-sm text-zinc-500">Nothing downloading. Paste a link above to start.</p>
+  </section>
+</main>
+
+<!-- built-in folder browser (used when the computer has no native folder dialog) -->
+<dialog id="folder-dialog" class="w-[min(32rem,calc(100vw-2rem))] rounded-2xl border border-zinc-700 bg-zinc-900 p-0 text-zinc-100 backdrop:bg-black/60">
+  <div class="flex items-center justify-between border-b border-zinc-800 px-5 py-3">
+    <h2 class="text-base font-semibold">Choose a folder</h2>
+    <button id="fd-close" type="button" class="rounded-lg px-2 py-1 text-zinc-400 hover:bg-zinc-800" aria-label="Close">&#10005;</button>
+  </div>
+  <div class="grid gap-3 p-5">
+    <p id="fd-path" class="break-all rounded-lg bg-zinc-950 px-3 py-2 font-mono text-xs text-zinc-300"></p>
+    <div class="flex flex-wrap gap-2">
+      <button id="fd-up" type="button" class="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm hover:bg-zinc-800">&#8593; Up</button>
+      <button id="fd-home" type="button" class="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm hover:bg-zinc-800">Home</button>
+      <label class="ml-auto flex items-center gap-2 text-xs text-zinc-400"><input id="fd-hidden" type="checkbox" class="accent-amber-500"> Show hidden</label>
+    </div>
+    <ul id="fd-list" class="max-h-64 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 divide-y divide-zinc-800 text-sm"></ul>
+    <p id="fd-error" hidden class="text-sm text-rose-300"></p>
+  </div>
+  <div class="flex justify-end gap-2 border-t border-zinc-800 px-5 py-3">
+    <button id="fd-cancel" type="button" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm hover:bg-zinc-800">Cancel</button>
+    <button id="fd-choose" type="button" class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400">Choose this folder</button>
+  </div>
+</dialog>
+
+<script>
+'use strict';
+/* No innerHTML anywhere: titles, thumbnails and error text come from other websites, so everything is built with
+   createElement/textContent, which cannot be tricked into running markup. */
+const $ = (selector, root = document) => root.querySelector(selector);
+function h(tag, props = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [key, value] of Object.entries(props)) {
+    if (value == null || value === false) continue;
+    if (key === 'class') el.className = value;
+    else if (key === 'text') el.textContent = value;
+    else if (key.startsWith('on')) el.addEventListener(key.slice(2), value);
+    else el.setAttribute(key, value === true ? '' : value);
+  }
+  for (const child of children.flat()) {
+    if (child == null || child === false) continue;
+    el.append(child instanceof Node ? child : String(child));
+  }
+  return el;
+}
+
+/* ---------- helpers ---------- */
+const fmtBytes = (n) => { if (!Number.isFinite(n) || n == null || n < 0) return ''; const u = ['B', 'KB', 'MB', 'GB', 'TB']; let i = 0; while (n >= 1024 && i < 4) { n /= 1024; i++; } return `${n >= 100 || i === 0 ? Math.round(n) : n.toFixed(1)} ${u[i]}`; };
+const fmtSpeed = (n) => (n ? `${fmtBytes(n)}/s` : '');
+const fmtTime = (s) => { if (s == null || !Number.isFinite(s)) return ''; s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${m}:${String(sec).padStart(2, '0')}`; };
+const heightLabel = (p) => (p >= 4320 ? '8K (4320p)' : p >= 2160 ? '4K (2160p)' : p === 1440 ? '1440p (2K)' : `${p}p`);
+const usefulWarnings = (list) => (list || []).filter((w) => !/Falling back on generic information extractor/i.test(w));
+function placeholderIcon() {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.6', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', class: 'h-7 w-7' })) svg.setAttribute(k, v);
+  const rect = document.createElementNS(ns, 'rect'); for (const [k, v] of Object.entries({ x: '3', y: '5', width: '18', height: '14', rx: '3' })) rect.setAttribute(k, v);
+  const tri = document.createElementNS(ns, 'path'); tri.setAttribute('d', 'M10 9.5v5l4.5-2.5z');
+  svg.append(rect, tri);
+  return h('div', { class: 'grid h-full w-full place-items-center text-zinc-600' }, svg);
+}
+const isWebImage = (u) => typeof u === 'string' && /^https?:\/\//i.test(u);
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem('md.' + key); return v == null ? fallback : v; } catch { return fallback; } },
+  set(key, value) { try { localStorage.setItem('md.' + key, value); } catch { /* private mode: fine */ } },
+};
+
+async function api(path, { method = 'GET', json, body } = {}) {
+  let response;
+  try {
+    response = await fetch(path, { method, headers: json ? { 'Content-Type': 'application/json' } : undefined, body: json ? JSON.stringify(json) : body });
+  } catch {
+    throw Object.assign(new Error('Cannot reach the downloader. Is it still running?'), { code: 'offline', hint: 'Start it again with: python main.py' });
+  }
+  let data = null;
+  try { data = await response.json(); } catch { /* not JSON */ }
+  if (!response.ok) {
+    const e = (data && data.error) || { code: 'http_' + response.status, message: `Request failed (${response.status}).` };
+    throw Object.assign(new Error(e.message), { code: e.code, hint: e.hint || '', status: response.status });
+  }
+  return data;
+}
+
+function showError(box, error) {
+  box.replaceChildren(...[h('p', { class: 'font-medium', text: error.message }), error.hint ? h('p', { class: 'mt-1 text-rose-300/80', text: error.hint }) : null].filter(Boolean)); // replaceChildren(null) would print the word "null"
+  box.hidden = false;
+}
+
+/* ---------- state ---------- */
+const state = { info: null, url: '', systemStatus: null, settings: null, jobs: new Map(), cards: new Map(), streams: new Map(), selected: new Set() };
+
+/* ---------- header chips and banners ---------- */
+function chip(text, tone) {
+  const tones = { ok: 'border-emerald-800 text-emerald-300', bad: 'border-rose-800 text-rose-300', neutral: 'border-zinc-700 text-zinc-300' };
+  return h('span', { class: `rounded-full border px-2.5 py-1 ${tones[tone]}`, text });
+}
+function renderSystem() {
+  const s = state.systemStatus;
+  const chips = $('#chips'), banners = $('#banners');
+  chips.replaceChildren();
+  banners.replaceChildren();
+  if (!s) return;
+  chips.append(s.ytdlp.installed ? chip(`yt-dlp ${s.ytdlp.version || ''}`.trim(), 'ok') : chip('yt-dlp missing', 'bad'),
+               s.ffmpeg.installed ? chip('FFmpeg ready', 'ok') : chip('FFmpeg missing', 'bad'));
+  const banner = (tone, title, body) => h('div', { class: `rounded-xl border p-3 text-sm ${tone}` }, h('p', { class: 'font-medium', text: title }), h('p', { class: 'mt-1 opacity-80', text: body }));
+  if (!s.ytdlp.installed) banners.append(banner('border-rose-900 bg-rose-950/50 text-rose-200', 'yt-dlp is not installed.', 'Run: pip install yt-dlp   (then restart this app)'));
+  if (!s.ffmpeg.installed) banners.append(banner('border-amber-900 bg-amber-950/40 text-amber-200', 'FFmpeg was not found.', 'Audio extraction and joining separate video and audio streams need FFmpeg. Install it and make sure it is on your PATH, then restart this app. Single-file downloads still work.'));
+}
+
+/* ---------- fetching details ---------- */
+async function fetchDetails(event) {
+  event.preventDefault();
+  const url = $('#url').value.trim();
+  const errorBox = $('#fetch-error');
+  errorBox.hidden = true;
+  if (!url) { showError(errorBox, { message: 'Paste a link first.', hint: '' }); return; }
+  setFetching(true);
+  try {
+    const info = await api('/api/info', { method: 'POST', json: { url } });
+    state.info = info; state.url = url;
+    renderDetails(info);
+  } catch (error) {
+    showError(errorBox, error);
+  } finally {
+    setFetching(false);
+  }
+}
+function setFetching(on) {
+  $('#fetch-btn').disabled = on;
+  $('#fetch-spinner').hidden = !on;
+  $('#fetch-label').textContent = on ? 'Fetching…' : 'Fetch details';
+}
+
+function option(value, label) { return h('option', { value, text: label }); }
+
+function renderDetails(info) {
+  const box = $('#details');
+  box.hidden = false;
+  const thumb = $('#d-thumb');
+  thumb.replaceChildren(isWebImage(info.thumbnail) ? h('img', { src: info.thumbnail, alt: '', referrerpolicy: 'no-referrer', loading: 'lazy', class: 'h-full w-full object-cover' }) : placeholderIcon());
+  $('#d-title').textContent = info.title;
+  const bits = [info.uploader, info.is_playlist ? `${info.playlist_count} items` : (info.duration ? fmtTime(info.duration) : '')].filter(Boolean);
+  $('#d-sub').textContent = bits.join(' · ');
+  $('#d-meta').textContent = [info.extractor, info.license].filter(Boolean).join(' · ');
+  $('#d-meta').classList.add('whitespace-pre-line');
+  for (const w of usefulWarnings(info.warnings)) $('#d-meta').textContent += `\n${w}`;
+
+  // quality: the heights this video really has (or common ones for a playlist)
+  const quality = $('#quality');
+  const heights = info.is_playlist ? [2160, 1440, 1080, 720, 480, 360] : info.available_heights;
+  quality.replaceChildren(option('', 'Best available'), ...heights.map((p) => option(String(p), heightLabel(p))));
+  const saved = store.get('quality', '');
+  if ([...quality.options].some((o) => o.value === saved)) quality.value = saved;
+
+  // an exact format, for people who want one
+  const exact = $('#exact');
+  const usable = info.formats.filter((f) => f.format_id);
+  exact.replaceChildren(option('', 'Automatic'), ...usable.map((f) => {
+    const parts = [f.format_id, f.resolution || '', f.fps ? `${Math.round(f.fps)}fps` : '', f.vcodec || '', f.acodec || '', f.ext, f.bitrate ? `${f.bitrate}k` : '', fmtBytes(f.filesize)].filter(Boolean);
+    return option(f.format_id, parts.join(' · '));
+  }));
+  exact.closest('label').hidden = info.is_playlist || usable.length < 2;
+
+  // playlist entries
+  const wrap = $('#entries-wrap'), list = $('#entries');
+  wrap.hidden = !info.is_playlist;
+  list.replaceChildren();
+  state.selected = new Set(info.entries.map((e) => e.index));
+  if (info.is_playlist) {
+    for (const entry of info.entries) {
+      const id = `entry-${entry.index}`;
+      list.append(h('li', { class: 'flex items-center gap-3 px-3 py-2' },
+        h('input', { id, type: 'checkbox', checked: true, class: 'accent-amber-500', 'data-index': entry.index,
+                     onchange: (e) => { e.target.checked ? state.selected.add(entry.index) : state.selected.delete(entry.index); syncEntries(); } }),
+        h('label', { for: id, class: 'min-w-0 flex-1 truncate', title: entry.title, text: `${entry.index}. ${entry.title}` }),
+        entry.duration ? h('span', { class: 'tabular text-xs text-zinc-500', text: fmtTime(entry.duration) }) : null));
+    }
+    $('#entries-note').textContent = info.truncated ? `Showing the first ${info.entries.length} of ${info.playlist_count}` : '';
+    syncEntries();
+  }
+  $('#download-msg').textContent = '';
+  applyMode();
+  box.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+}
+function syncEntries() {
+  const total = state.info ? state.info.entries.length : 0;
+  $('#entries-count').textContent = `${state.selected.size} of ${total} selected`;
+  $('#entries-all').checked = state.selected.size === total;
+  $('#entries-all').indeterminate = state.selected.size > 0 && state.selected.size < total;
+  $('#download-btn').textContent = state.info && state.info.is_playlist ? `Download ${state.selected.size} item${state.selected.size === 1 ? '' : 's'}` : 'Download';
+}
+function playlistItemsParam() {
+  if (!state.info || !state.info.is_playlist || state.selected.size === state.info.entries.length) return '';
+  const nums = [...state.selected].sort((a, b) => a - b), ranges = [];
+  for (let i = 0; i < nums.length; i++) {
+    let j = i;
+    while (j + 1 < nums.length && nums[j + 1] === nums[j] + 1) j++;
+    ranges.push(j > i ? `${nums[i]}-${nums[j]}` : String(nums[i]));
+    i = j;
+  }
+  return ranges.join(',');
+}
+
+function currentMode() { return $('input[name=mode]:checked').value; }
+function applyMode() {
+  const audio = currentMode() === 'audio';
+  $('#video-opts').hidden = audio;
+  $('#audio-opts').hidden = !audio;
+  store.set('mode', currentMode());
+}
+function formatSelection() {
+  if (currentMode() === 'audio') return 'ba/b';
+  const exactId = $('#exact').value;
+  if (exactId && !$('#exact').closest('label').hidden) {
+    const f = state.info.formats.find((x) => x.format_id === exactId);
+    if (f && f.has_video && !f.has_audio) return `${exactId}+ba/${exactId}`;
+    return exactId;
+  }
+  const height = $('#quality').value;
+  return height ? `bv*[height<=?${height}]+ba/b[height<=?${height}]` : 'bv*+ba/b';
+}
+
+/* ---------- starting a download ---------- */
+async function startDownload() {
+  const msg = $('#download-msg'), button = $('#download-btn');
+  msg.className = 'text-sm text-zinc-400';
+  if (state.info.is_playlist && state.selected.size === 0) { msg.className = 'text-sm text-rose-300'; msg.textContent = 'Select at least one item.'; return; }
+  button.disabled = true;
+  msg.textContent = '';
+  try {
+    const audio = currentMode() === 'audio';
+    const options = {};
+    const items = playlistItemsParam();
+    if (items) options.playlist_items = items;
+    if (!audio && $('#container').value) options.container = $('#container').value;
+    const job = await api('/api/download', { method: 'POST', json: {
+      url: state.url, format_selection: formatSelection(), output_path: $('#out-path').value.trim(), extract_audio: audio, audio_format: $('#audio-format').value,
+      options, is_playlist: state.info.is_playlist, title: state.info.title, thumbnail: isWebImage(state.info.thumbnail) ? state.info.thumbnail : null } });
+    store.set('out', $('#out-path').value.trim()); store.set('quality', $('#quality').value); store.set('container', $('#container').value); store.set('audio', $('#audio-format').value);
+    msg.className = 'text-sm text-emerald-300';
+    msg.textContent = 'Added to the queue.';
+    await refreshJob(job.job_id);
+  } catch (error) {
+    msg.className = 'text-sm text-rose-300';
+    msg.textContent = error.message + (error.hint ? ' ' + error.hint : '');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+/* ---------- the queue ---------- */
+const STATUS = {
+  queued: ['Queued', 'bg-zinc-800 text-zinc-300'], downloading: ['Downloading', 'bg-amber-500/15 text-amber-300'], 'post-processing': ['Processing', 'bg-sky-500/15 text-sky-300'],
+  completed: ['Done', 'bg-emerald-500/15 text-emerald-300'], failed: ['Failed', 'bg-rose-500/15 text-rose-300'], cancelled: ['Cancelled', 'bg-zinc-800 text-zinc-400'],
+};
+const ENDED = new Set(['completed', 'failed', 'cancelled']);
+const BAR = { downloading: 'bg-amber-400', 'post-processing': 'bg-sky-400', completed: 'bg-emerald-400', failed: 'bg-rose-500', cancelled: 'bg-zinc-600', queued: 'bg-zinc-600' };
+
+function createCard(id) {
+  const card = {
+    root: h('li', { class: 'rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4', 'data-job': id }),
+    thumb: h('div', { class: 'h-12 w-20 sm:h-16 sm:w-28 shrink-0 overflow-hidden rounded-lg bg-zinc-800' }),
+    title: h('p', { class: 'truncate font-medium' }), status: h('span', { class: 'rounded-full px-2.5 py-0.5 text-xs font-medium' }),
+    bar: h('div', { class: 'bar h-full rounded-full', style: 'width:0%' }), track: h('div', { class: 'mt-3 h-2 overflow-hidden rounded-full bg-zinc-800', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100 }),
+    line: h('p', { class: 'tabular mt-2 flex flex-wrap gap-x-3 text-xs text-zinc-400' }), notes: h('div', { class: 'mt-2 grid gap-1 text-xs' }),
+    cancel: h('button', { type: 'button', class: 'rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium hover:bg-zinc-800', text: 'Cancel', onclick: () => cancelJob(id) }),
+    remove: h('button', { type: 'button', class: 'rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium hover:bg-zinc-800', text: 'Remove', onclick: () => removeJob(id) }),
+  };
+  card.track.append(card.bar);
+  card.root.append(
+    h('div', { class: 'flex items-start gap-3' }, card.thumb, h('div', { class: 'min-w-0 flex-1' }, h('div', { class: 'flex items-start justify-between gap-3' }, card.title, card.status))),
+    card.track, card.line, card.notes,
+    h('div', { class: 'mt-3 flex justify-end gap-2' }, card.cancel, card.remove));
+  return card;
+}
+function updateCard(job) {
+  let card = state.cards.get(job.job_id);
+  if (!card) {
+    card = createCard(job.job_id);
+    state.cards.set(job.job_id, card);
+    $('#queue').prepend(card.root);
+  }
+  const [label, tone] = STATUS[job.status] || [job.status, STATUS.queued[1]];
+  const ended = ENDED.has(job.status);
+  card.title.textContent = job.title || job.url;
+  card.title.title = job.title || job.url;
+  card.status.className = `shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${tone}`;
+  card.status.textContent = label;
+  const thumb = isWebImage(job.thumbnail) ? h('img', { src: job.thumbnail, alt: '', referrerpolicy: 'no-referrer', loading: 'lazy', class: 'h-full w-full object-cover' }) : null;
+  if (!card.thumb.firstChild || (card.thumb.firstChild.src || null) !== (thumb ? thumb.src : null)) card.thumb.replaceChildren(thumb || placeholderIcon());
+  const pct = job.status === 'completed' ? 100 : Math.max(0, Math.min(100, job.percent || 0));
+  card.bar.style.width = `${pct}%`;
+  card.bar.className = `bar h-full rounded-full ${BAR[job.status] || 'bg-zinc-600'}`;
+  card.track.setAttribute('aria-valuenow', String(Math.round(pct)));
+  card.track.setAttribute('aria-label', `${job.title || 'Download'} progress`);
+  const parts = [];
+  if (job.status === 'downloading' || job.status === 'post-processing') parts.push(job.stage);
+  else if (job.status === 'queued') parts.push('Waiting for a free slot');
+  else if (job.status === 'completed') parts.push(job.files_count > 1 ? `${job.files_count} files saved` : 'Saved');
+  if (job.status === 'downloading') {
+    parts.push(`${Math.round(pct)}%`);
+    if (job.speed) parts.push(fmtSpeed(job.speed));
+    if (job.eta != null) parts.push(`ETA ${fmtTime(job.eta)}`);
+    if (job.total_bytes) parts.push(`${fmtBytes(job.downloaded_bytes)} of ${fmtBytes(job.total_bytes)}`);
+    if (job.playlist_count > 1) parts.push(`item ${job.playlist_index || 1} of ${job.playlist_count}`);
+    if (job.part > 1) parts.push(`part ${job.part}`);
+  }
+  card.line.replaceChildren(...parts.map((p) => h('span', { text: p })));
+  const notes = [];
+  if (job.message && job.status !== 'failed') notes.push(h('p', { class: job.stage === 'Waiting to retry' ? 'text-amber-300' : 'text-zinc-400', text: job.message }));
+  if (job.status === 'completed' && job.filename) notes.push(h('p', { class: 'break-all font-mono text-zinc-500', text: job.filename }));
+  if (job.status === 'failed' && job.error) {
+    notes.push(h('div', { class: 'rounded-lg border border-rose-900 bg-rose-950/40 p-2.5 text-rose-200' },
+      h('p', { class: 'font-medium', text: job.error.message }), job.error.hint ? h('p', { class: 'mt-0.5 text-rose-300/80', text: job.error.hint }) : null,
+      job.error.detail && job.error.detail !== job.error.message ? h('p', { class: 'mt-1 break-all font-mono text-[11px] text-rose-300/60', text: job.error.detail }) : null));
+  }
+  for (const w of usefulWarnings(job.warnings)) notes.push(h('p', { class: 'break-words text-amber-300/80', text: `Warning: ${w}` }));
+  card.notes.replaceChildren(...notes);
+  card.cancel.hidden = ended;
+  card.remove.hidden = !ended;
+  state.jobs.set(job.job_id, job);
+  refreshQueueChrome();
+}
+function refreshQueueChrome() {
+  const any = state.cards.size > 0;
+  $('#queue-empty').hidden = any;
+  $('#clear-done').hidden = ![...state.jobs.values()].some((j) => ENDED.has(j.status));
+}
+
+function watchJob(id) {
+  if (state.streams.has(id)) return;
+  const source = new EventSource(`/api/download/stream?job_id=${encodeURIComponent(id)}`);
+  state.streams.set(id, source);
+  source.addEventListener('update', (e) => { try { updateCard(JSON.parse(e.data)); } catch { /* ignore a bad event */ } });
+  source.addEventListener('end', () => { source.close(); state.streams.delete(id); });
+  source.onerror = () => { if (source.readyState === EventSource.CLOSED) state.streams.delete(id); };
+}
+async function refreshJob(id) {
+  const { jobs } = await api('/api/jobs');
+  const job = jobs.find((j) => j.job_id === id);
+  if (job) { updateCard(job); if (!ENDED.has(job.status)) watchJob(id); }
+}
+async function cancelJob(id) {
+  const card = state.cards.get(id);
+  if (card) { card.cancel.disabled = true; card.cancel.textContent = 'Cancelling…'; }
+  try { await api('/api/download/cancel', { method: 'POST', json: { job_id: id } }); await refreshJob(id); }
+  catch (error) { if (card) { card.cancel.disabled = false; card.cancel.textContent = 'Cancel'; card.notes.append(h('p', { class: 'text-rose-300', text: error.message })); } }
+}
+async function removeJob(id) {
+  try { await api(`/api/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }); } catch { /* already gone */ }
+  const card = state.cards.get(id);
+  if (card) card.root.remove();
+  state.cards.delete(id); state.jobs.delete(id);
+  const stream = state.streams.get(id);
+  if (stream) { stream.close(); state.streams.delete(id); }
+  refreshQueueChrome();
+}
+
+/* ---------- choosing a folder ---------- */
+async function browseFolder() {
+  const button = $('#browse');
+  button.disabled = true;
+  try {
+    const result = await api(`/api/browse-directory?path=${encodeURIComponent($('#out-path').value)}`);
+    if (result.path) $('#out-path').value = result.path;
+  } catch (error) {
+    if (error.code === 'dialog_unavailable') openFolderDialog($('#out-path').value);
+    else showDownloadMessage(error.message);
+  } finally { button.disabled = false; }
+}
+function showDownloadMessage(text) { const m = $('#download-msg'); m.className = 'text-sm text-rose-300'; m.textContent = text; }
+const folder = { path: '', parent: null, home: '', target: null };
+async function openFolderDialog(start, target = '#out-path') {
+  folder.target = target;
+  $('#folder-dialog').showModal();
+  await loadFolder(start);
+}
+async function loadFolder(path) {
+  $('#fd-error').hidden = true;
+  try {
+    const data = await api(`/api/browse-directory?mode=list&path=${encodeURIComponent(path || '')}&show_hidden=${$('#fd-hidden').checked}`);
+    Object.assign(folder, { path: data.path, parent: data.parent, home: data.home });
+    $('#fd-path').textContent = data.path;
+    $('#fd-up').disabled = !data.parent;
+    $('#fd-list').replaceChildren(...(data.entries.length ? data.entries.map((e) => h('li', {}, h('button', { type: 'button', class: 'flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-zinc-800', onclick: () => loadFolder(e.path) }, h('span', { 'aria-hidden': 'true', text: '\u{1F4C1}' }), h('span', { class: 'truncate', text: e.name })))) : [h('li', { class: 'px-3 py-6 text-center text-zinc-500', text: 'No sub-folders here.' })]));
+  } catch (error) { const box = $('#fd-error'); box.textContent = error.message; box.hidden = false; }
+}
+
+/* ---------- settings ---------- */
+const BROWSERS = ['chrome', 'firefox', 'edge', 'brave', 'chromium', 'opera', 'vivaldi', 'safari', 'whale'];
+function cookieMode() { return $('input[name=cookie-mode]:checked').value; }
+function renderSettings() {
+  const s = state.settings;
+  if (!s) return;
+  $('#proxy').value = s.proxy; $('#user-agent').value = s.user_agent; $('#default-dir').value = s.default_output_dir; $('#embed-metadata').checked = s.embed_metadata !== false;
+  const [browser, profile] = (s.cookies_from_browser || '').split(':');
+  $('#cookie-browser').value = browser || 'chrome'; $('#cookie-profile').value = profile || '';
+  $('#cookie-path').value = s.cookies_uploaded ? '' : (s.cookies_file || '');
+  const mode = s.cookies_from_browser ? 'browser' : s.cookies_file ? 'file' : 'none';
+  $(`input[name=cookie-mode][value=${mode}]`).checked = true;
+  $('#cookie-note').textContent = s.cookies_uploaded ? 'A file is uploaded and saved on this computer.' : '';
+  $('#cookie-remove').hidden = !s.cookies_uploaded;
+  if (!$('#out-path').value) $('#out-path').value = store.get('out', s.default_output_dir);
+}
+async function saveSettings(event) {
+  event.preventDefault();
+  const msg = $('#settings-msg');
+  const mode = cookieMode();
+  const body = { proxy: $('#proxy').value.trim(), user_agent: $('#user-agent').value.trim(), default_output_dir: $('#default-dir').value.trim(), embed_metadata: $('#embed-metadata').checked,
+                 cookies_from_browser: mode === 'browser' ? `${$('#cookie-browser').value}${$('#cookie-profile').value.trim() ? ':' + $('#cookie-profile').value.trim() : ''}` : '' };
+  if (mode === 'file') { if ($('#cookie-path').value.trim()) body.cookies_file = $('#cookie-path').value.trim(); }
+  else if (mode === 'none') body.cookies_file = '';
+  try {
+    state.settings = await api('/api/settings', { method: 'PUT', json: body });
+    renderSettings();
+    msg.className = 'text-sm text-emerald-300'; msg.textContent = 'Saved.';
+  } catch (error) { msg.className = 'text-sm text-rose-300'; msg.textContent = error.message + (error.hint ? ' ' + error.hint : ''); }
+}
+async function uploadCookies(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const form = new FormData();
+  form.append('file', file);
+  const msg = $('#settings-msg');
+  try { state.settings = await api('/api/settings/cookies', { method: 'POST', body: form }); renderSettings(); msg.className = 'text-sm text-emerald-300'; msg.textContent = 'Cookies file uploaded.'; }
+  catch (error) { msg.className = 'text-sm text-rose-300'; msg.textContent = error.message + (error.hint ? ' ' + error.hint : ''); }
+  event.target.value = '';
+}
+async function updateYtdlp() {
+  const msg = $('#update-msg'), button = $('#update-ytdlp');
+  button.disabled = true; $('#update-spinner').hidden = false; msg.className = 'text-sm text-zinc-400'; msg.textContent = 'Updating…';
+  try {
+    const r = await api('/api/system/update-ytdlp', { method: 'POST' });
+    msg.className = 'text-sm text-emerald-300';
+    msg.textContent = r.changed ? `Updated ${r.before} → ${r.after}` : `Already up to date (${r.after}).`;
+    state.systemStatus = await api('/api/system/status'); renderSystem();
+  } catch (error) { msg.className = 'text-sm text-rose-300'; msg.textContent = error.message + (error.hint ? ' ' + error.hint : ''); }
+  finally { button.disabled = false; $('#update-spinner').hidden = true; }
+}
+
+/* ---------- start-up ---------- */
+function wire() {
+  $('#fetch-form').addEventListener('submit', fetchDetails);
+  $('#download-btn').addEventListener('click', startDownload);
+  $('#browse').addEventListener('click', browseFolder);
+  for (const radio of document.querySelectorAll('input[name=mode]')) radio.addEventListener('change', applyMode);
+  $('#entries-all').addEventListener('change', (e) => {
+    state.selected = e.target.checked ? new Set(state.info.entries.map((x) => x.index)) : new Set();
+    for (const box of document.querySelectorAll('#entries input[type=checkbox]')) box.checked = e.target.checked;
+    syncEntries();
+  });
+  $('#advanced-toggle').addEventListener('click', (e) => { const open = $('#advanced').hidden; $('#advanced').hidden = !open; e.currentTarget.setAttribute('aria-expanded', String(open)); });
+  $('#settings-form').addEventListener('submit', saveSettings);
+  $('#cookie-upload').addEventListener('change', uploadCookies);
+  $('#cookie-remove').addEventListener('click', async () => { state.settings = await api('/api/settings/cookies', { method: 'DELETE' }); renderSettings(); });
+  $('#ua-common').addEventListener('click', () => { $('#user-agent').value = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'; });
+  $('#update-ytdlp').addEventListener('click', updateYtdlp);
+  $('#clear-done').addEventListener('click', () => { for (const [id, job] of [...state.jobs]) if (ENDED.has(job.status)) removeJob(id); });
+  $('#fd-up').addEventListener('click', () => folder.parent && loadFolder(folder.parent));
+  $('#fd-home').addEventListener('click', () => loadFolder(folder.home));
+  $('#fd-hidden').addEventListener('change', () => loadFolder(folder.path));
+  $('#fd-close').addEventListener('click', () => $('#folder-dialog').close());
+  $('#fd-cancel').addEventListener('click', () => $('#folder-dialog').close());
+  $('#fd-choose').addEventListener('click', () => { if (folder.target) $(folder.target).value = folder.path; $('#folder-dialog').close(); });
+  $('#cookie-browser').replaceChildren(...BROWSERS.map((b) => option(b, b.charAt(0).toUpperCase() + b.slice(1))));
+  const mode = store.get('mode', 'video');
+  const radio = $(`input[name=mode][value=${mode}]`); if (radio) radio.checked = true;
+  $('#audio-format').value = store.get('audio', 'mp3'); $('#container').value = store.get('container', '');
+}
+
+async function start() {
+  wire();
+  try { state.systemStatus = await api('/api/system/status'); } catch { state.systemStatus = null; }
+  renderSystem();
+  try { state.settings = await api('/api/settings'); renderSettings(); } catch { /* the page still works */ }
+  try {
+    const { jobs } = await api('/api/jobs');           // a reload does not lose the queue
+    for (const job of [...jobs].reverse()) { updateCard(job); if (!ENDED.has(job.status)) watchJob(job.job_id); }
+  } catch { /* nothing to restore */ }
+  refreshQueueChrome();
+  $('#url').focus();
+}
+start();
+</script>
+</body>
+</html>
