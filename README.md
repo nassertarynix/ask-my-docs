@@ -1,6 +1,6 @@
 # Portfolio projects by Al-Nasser Haddad
 
-Six separate projects in one repository. Each folder is self-contained, with its own README, tests,
+Seven separate projects in one repository. Each folder is self-contained, with its own README, tests,
 CI workflow, `CLAUDE.md` and demo, so a folder can be copied out into a repository of its own.
 
 | Folder | What it is | Stack | Demo |
@@ -11,13 +11,14 @@ CI workflow, `CLAUDE.md` and demo, so a folder can be copied out into a reposito
 | [`telegram-cloud-storage/`](telegram-cloud-storage) | **Telegram Cloud Storage**: a desktop file manager that keeps files in a private Telegram channel, split into verified chunks and indexed by local SQLite. Folders, drag and drop, live progress, index recovery from the channel. | Tauri (Rust), React, Tailwind, Python (FastAPI, SQLite, Telethon) | [demo](telegram-cloud-storage/docs/demo/telegram_cloud_storage_demo.mp4) |
 | [`telegram-media-bot/`](telegram-media-bot) | **Telegram Movie & Anime Library Bot**: post videos to a private channel with a metadata caption; the bot indexes them into SQLite and users search and receive them through inline menus (title, season, episode, quality). Survives expired file ids by re-fetching the post. | Python, Telethon, SQLite | [simulated walkthrough](telegram-media-bot/docs/walkthrough.txt) |
 | [`media-downloader/`](media-downloader) | **Media Downloader**: a local web app that downloads video and audio from YouTube and other sites supported by yt-dlp, with live progress, cancel, playlist selection, cookies, proxy and user-agent settings. yt-dlp runs as a subprocess, never as a library. | Python, FastAPI, SSE, Tailwind (CDN), vanilla JS | [screenshots](media-downloader/docs) |
+| [`game-hub/`](game-hub) | **Paper Arcade**: a minimalist, zero-backend browser game hub. First game: CRATER // LAB, a destructible-terrain artillery duel with five odd kinds of ammo, against a ballistics-solving AI (three levels) or a friend on the same device. | TypeScript, React, Canvas 2D, Web Audio | [screenshots](game-hub/docs) |
 
 Each project's README explains what it does, how to run it, how it is tested, and its honest limitations.
 
 ## Checks
 
 Each project has its own workflow in `.github/workflows/` that runs only when that folder changes:
-`ask-my-docs.yml` (pytest, Python 3.10 to 3.13), `minierp.yml` and `runway.yml` (type check, lint, unit tests, build, then browser tests), `telegram-media-bot.yml` (pytest on Python 3.10 to 3.13), `media-downloader.yml` (pytest with FFmpeg and Playwright on Python 3.10 to 3.13), and `telegram-cloud-storage.yml` (backend tests on Python 3.11 to 3.13, frontend lint, tests and build, browser tests, the Rust sidecar tests).
+`ask-my-docs.yml` (pytest, Python 3.10 to 3.13), `minierp.yml`, `runway.yml` and `game-hub.yml` (type check, lint, unit tests, build, then browser tests), `telegram-media-bot.yml` (pytest on Python 3.10 to 3.13), `media-downloader.yml` (pytest with FFmpeg and Playwright on Python 3.10 to 3.13), and `telegram-cloud-storage.yml` (backend tests on Python 3.11 to 3.13, frontend lint, tests and build, browser tests, the Rust sidecar tests).
 
 ## Taking one project into its own repository
 
