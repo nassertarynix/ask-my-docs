@@ -43,6 +43,14 @@ for (let i = 0; i < 200; i++) {
   if (bars !== 'flight') break;
 }
 await page.screenshot({ path: `${out}/match-after.png` });
+// the Retro Deck
+await page.goto(`${base}#/play/retro`);
+await page.waitForSelector('.cart');
+await page.screenshot({ path: `${out}/retro-shelf.png` });
+await page.locator('[data-rom="bundled:homebrew/novathesquirrel.nes"]').click();
+await page.waitForSelector('[data-status="running"]');
+await page.waitForTimeout(2500);
+await page.screenshot({ path: `${out}/retro-play.png` });
 await desktop.close();
 
 const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });

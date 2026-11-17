@@ -1,0 +1,38 @@
+# Third-party software in this folder
+
+The hub's own code is MIT (see LICENSE). The Retro Deck also ships files written by other people, under their own licences.
+
+## Emulator cores (`public/retro/cores/`)
+
+RetroArch cores compiled to WebAssembly, taken unmodified from
+[arianrhodsandlot/retroarch-emscripten-build](https://github.com/arianrhodsandlot/retroarch-emscripten-build) v1.22.2.
+
+| Core | Plays | Licence | Source |
+| --- | --- | --- | --- |
+| fceumm | NES | GPL-2.0 | https://github.com/libretro/libretro-fceumm |
+| gambatte | Game Boy, Game Boy Color | GPL-2.0 | https://github.com/libretro/gambatte-libretro |
+| mgba | Game Boy Advance | MPL-2.0 | https://github.com/libretro/mgba |
+| snes9x | Super NES | Snes9x licence (**non-commercial use only**) | https://github.com/libretro/snes9x |
+| genesis_plus_gx | Mega Drive / Genesis | Genesis Plus GX licence (**non-commercial use only**) | https://github.com/libretro/Genesis-Plus-GX |
+
+RetroArch itself is GPL-3.0 (https://github.com/libretro/RetroArch). Because two cores are non-commercial only,
+do not use this deck in anything that is sold or carries advertising without removing them.
+
+[Nostalgist.js](https://github.com/arianrhodsandlot/nostalgist) (MIT) drives the cores.
+
+## Homebrew games (`public/retro/homebrew/`)
+
+Free software games, included unmodified. Each card on the shelf links to its source code.
+
+| Game | Console | Author | Licence | Source |
+| --- | --- | --- | --- | --- |
+| Nova the Squirrel | NES | NovaSquirrel | GPL-3.0 | https://github.com/NovaSquirrel/NovaTheSquirrel |
+| Thwaite | NES | Damian Yerrick | GPL-3.0-or-later | https://github.com/pinobatch/thwaite-nes |
+| Concentration Room | NES | Damian Yerrick | GPL-3.0-or-later | https://github.com/pinobatch/croom-nes |
+| µCity | Game Boy Color | Antonio Niño Díaz | GPL-3.0-or-later | https://github.com/AntonioND/ucity |
+
+The ROM files were downloaded from the [retrobrews](https://github.com/retrobrews) collections.
+
+## Font
+
+Space Grotesk, SIL Open Font License 1.1, via @fontsource.

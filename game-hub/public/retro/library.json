@@ -1,0 +1,6 @@
+[
+  { "file": "homebrew/novathesquirrel.nes", "title": "Nova the Squirrel", "system": "nes", "author": "NovaSquirrel", "license": "GPL-3.0", "source": "https://github.com/NovaSquirrel/NovaTheSquirrel", "blurb": "A full platformer: copy enemies' abilities and cross seven worlds." },
+  { "file": "homebrew/thwaite.nes", "title": "Thwaite", "system": "nes", "author": "Damian Yerrick", "license": "GPL-3.0-or-later", "source": "https://github.com/pinobatch/thwaite-nes", "blurb": "Shoot down the missiles before they reach the town." },
+  { "file": "homebrew/croom.nes", "title": "Concentration Room", "system": "nes", "author": "Damian Yerrick", "license": "GPL-3.0-or-later", "source": "https://github.com/pinobatch/croom-nes", "blurb": "A card-matching memory game, for one or two." },
+  { "file": "homebrew/ucity.gbc", "title": "µCity", "system": "gbc", "author": "Antonio Niño Díaz", "license": "GPL-3.0-or-later", "source": "https://github.com/AntonioND/ucity", "blurb": "A city builder that fits on a Game Boy Color." }
+]

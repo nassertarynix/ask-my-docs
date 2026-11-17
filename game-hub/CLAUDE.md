@@ -21,6 +21,16 @@ Pass `--trace off` to Playwright unless debugging.
 - `src/games/crater-lab/engine/`: the headless simulation. `ui/`: `GameView` (turns, HUD, keyboard, AI turn) and
   `CanvasStage` (renderer, fixed-timestep clock, pointer).
 
+- `src/retro/`: the Retro Deck. `systems.ts`, `library.ts` (shelf lists, validated), `romStore.ts` (IndexedDB),
+  `RetroView.tsx` (shelf), `Player.tsx` (Nostalgist.js + self-hosted RetroArch cores in `public/retro/cores/`).
+
+## Retro Deck rules
+- **Never commit or publish a commercial ROM.** `public/roms/` is git-ignored (only its README is tracked). The only
+  ROMs in the repo are the four GPL homebrew games listed in THIRD_PARTY.md. Do not download ROMs from ROM sites.
+- Cores are served from this site (`resolveCoreJs`/`resolveCoreWasm`); an e2e test fails on any request to another host.
+- `library.json` and `manifest.json` are data: paths must be relative with no `..` or scheme (`isSafeRelativePath`).
+- New third-party files need an entry in THIRD_PARTY.md. snes9x and genesis_plus_gx are non-commercial only.
+
 ## Rules (keep them; each has a test)
 - **The engine imports nothing from React or the browser** and never calls `Math.random` or reads a clock. All
   randomness goes through `rng.ts` with a seed. `Math.random` is allowed only for decoration in `CanvasStage`.
@@ -44,6 +54,10 @@ Pass `--trace off` to Playwright unless debugging.
 - **After using a slider it keeps focus**, so Space must still fire: the key handler only yields arrow keys to inputs.
 - `<output>` has the ARIA role `status`; tests select the status line by class.
 - An invisible radio input laid over a card needs `z-index`, because the card gets its own layer when it transforms.
+- **CSS class names are global.** The emulator screen first used `.player`, which CRATER // LAB's HUD already styles,
+  and collapsed. Retro classes are prefixed (`emu-`, `cart-`, `pad-`, `shelf-`).
+- `.md` is both Markdown and a Mega Drive ROM: `README.md` is excluded by name in `systems.ts` and `scripts/roms.mjs`.
+- Nostalgist asks for a screen wake lock; a headless browser refuses and logs a page error. Tests ignore that one message.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 
 ## Conventions

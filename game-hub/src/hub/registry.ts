@@ -5,9 +5,11 @@
 import { Goal, Layers } from 'lucide-react';
 import type { GameEntry } from './types';
 import { craterLab } from '../games/crater-lab';
+import { retroDeck } from '../retro';
 
 export const GAMES: readonly GameEntry[] = [
   craterLab,
+  retroDeck,
   {
     id: 'orbit-golf',
     title: 'ORBIT // GOLF',

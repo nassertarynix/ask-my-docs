@@ -1,11 +1,12 @@
 # Paper Arcade
 
 A minimalist browser game hub with no backend: paper background, ink borders, hard shadows, and small games that start
-instantly. Its first game is **CRATER // LAB**, a destructible-terrain artillery duel for one player against a
-ballistics-solving AI, or two players passing one device.
+instantly. It has **CRATER // LAB**, a destructible-terrain artillery duel for one player against a
+ballistics-solving AI or two players passing one device, and **RETRO // DECK**, a shelf of console games running in
+WebAssembly emulators.
 
-TypeScript (strict), React, Vite. HTML5 Canvas 2D for the game, the Web Audio API for every sound. No game engine and
-no audio files: it builds into a static bundle for Cloudflare Pages, GitHub Pages or any static host.
+TypeScript (strict), React, Vite. CRATER // LAB is HTML5 Canvas 2D with every sound synthesised by the Web Audio API
+(no game engine, no audio files). Everything builds into a static bundle for Cloudflare Pages, GitHub Pages or any static host.
 
 | The hub | Aiming | A Tri-Splitter, split | On a phone |
 | :-: | :-: | :-: | :-: |
@@ -34,6 +35,29 @@ that reaches zero loses.
   the shake and the freeze are off.
 - Your wins and streak against the AI are kept on your device and shown on the hub card.
 
+## RETRO // DECK
+
+Console games running in the browser: NES, Super NES, Mega Drive / Genesis, Game Boy, Game Boy Color and Game Boy
+Advance. The emulators are RetroArch cores compiled to WebAssembly and served from the hub itself, so playing makes no
+request to any other site. Click a card and the game starts.
+
+<img src="docs/retro-shelf.png" width="380"> <img src="docs/retro-play.png" width="380">
+
+- **Four free games are included** so it works straight away: Nova the Squirrel, Thwaite and Concentration Room (NES)
+  and µCity (Game Boy Color). All four are GPL homebrew; each card links to its source.
+- **Your own games, one click each.** Put the ROM files in `public/roms/` (sub-folders are fine) and run `npm run dev`.
+  They appear on the shelf as cards, titled from the file name. That folder is ignored by git, so your files are never
+  committed.
+- **Or add a file in the browser**: the *Add a game file* button, or drop files on the page. The game is kept in that
+  browser (IndexedDB), is not uploaded anywhere, and is on the shelf from then on.
+- **Saves**: a game's own battery save is kept automatically; there is also one quick-save slot per game.
+- **Controls**: keyboard (arrows, `X` `Z` `S` `A`, `Enter`, `Shift`), a gamepad, or an on-screen pad on touch screens.
+
+**About commercial games.** No commercial ROM is included, and none should be committed or published: they are
+copyrighted. A build made on your machine contains whatever is in `public/roms/`, so only deploy such a build somewhere
+private and access-controlled (or deploy without that folder and add games per browser). Third-party licences are in
+[THIRD_PARTY.md](THIRD_PARTY.md); note that the Super NES and Mega Drive cores are for non-commercial use only.
+
 ## Run it
 
 ```bash
@@ -42,8 +66,8 @@ npm run dev          # http://localhost:5173
 ```
 
 ```bash
-npm test             # 138 unit tests (Vitest): terrain, physics, weapons, the match, the AI, storage
-npm run e2e          # 26 browser tests (Playwright), at phone and desktop sizes
+npm test             # 184 unit tests (Vitest): terrain, physics, weapons, the match, the AI, storage, the ROM shelf
+npm run e2e          # 50 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
 npm run typecheck && npm run lint
 npm run build        # static files in dist/
 ```
@@ -81,7 +105,12 @@ What the tests check, among other things:
 
 ## Honest limitations
 
-- One game so far. The two "coming soon" cards are placeholders that show how the hub lays out; they are not built.
+- One original game and the emulator deck so far. The two "coming soon" cards are placeholders; they are not built.
+- The emulators were checked by automated browser tests (they boot, draw, take input, save and load) on NES and Game
+  Boy Color homebrew. The Super NES, Mega Drive and Game Boy Advance cores are wired the same way but no game for them
+  was run here, and nobody has judged sound or speed by ear or on a real phone.
+- PlayStation, DOS, Nintendo DS and Windows games are not supported.
+- The emulator's sound does not follow the hub's mute button.
 - No online play: two players share one device.
 - The terrain is a heightmap, so there are no caves or overhangs. Dirt above a blast drops straight down.
 - The Artillery Savant is hard on purpose: it usually hits, and three hits end a match.

@@ -5,3 +5,6 @@ test-results/
 *.log
 .DS_Store
 .env
+# the player's own ROM files and the list generated from them: never committed
+public/roms/*
+!public/roms/README.md

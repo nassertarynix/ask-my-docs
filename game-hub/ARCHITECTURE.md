@@ -108,6 +108,31 @@ it refreshes whenever something visible changes; React renders from the snapshot
 freezes for 40 ms on a direct hit, and draws. On screens narrower than the 2:1 field, the camera follows the action.
 Controls: drag on the field, the sliders, or the keyboard (arrows, Space, 1 to 5).
 
+## The Retro Deck (`src/retro/`)
+
+Not a game but a second kind of hub entry: a shelf of ROMs and a player.
+
+```
+src/retro/
+├── index.ts        the hub card (lazy)
+├── systems.ts      consoles -> libretro core, file extensions, screen shape, buttons
+├── library.ts      the shelf: bundled homebrew + the owner's local files, both validated as untrusted data
+├── romStore.ts     IndexedDB: imported ROMs, battery saves and quick-saves
+├── RetroView.tsx   the shelf, import by button or drag and drop
+└── Player.tsx      Nostalgist.js + a RetroArch core, toolbar, touch pad
+public/retro/cores/     the cores (.js + .wasm), self-hosted
+public/retro/homebrew/  four GPL games, listed in public/retro/library.json
+public/roms/            the owner's own files: git-ignored, listed into manifest.json by scripts/roms.mjs
+```
+
+- **No third-party requests.** Nostalgist normally downloads cores from a CDN; `resolveCoreJs` / `resolveCoreWasm`
+  point it at `./retro/cores/` instead. The emulator library itself is a separate chunk loaded when a game starts.
+- **Three sources, one shelf.** `bundled` (shipped), `local` (`public/roms/`, picked up by `npm run dev`/`build`),
+  `imported` (dropped on the page, stored in IndexedDB under a hash of the contents, so duplicates collapse).
+- **Saves** are keyed by the ROM's id. The battery save is copied out every 15 s, on pause and on leaving.
+- To add a console: add an entry to `SYSTEMS`, put its core's two files in `public/retro/cores/`, and list its licence
+  in THIRD_PARTY.md.
+
 ## Add Game #2 in under 5 minutes
 
 A game is a React component plus one registry entry. The hub gives it a frame (Back, Sound, Reset), a URL, lazy loading,
