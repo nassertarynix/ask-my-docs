@@ -1,6 +1,83 @@
 [
-  { "file": "homebrew/novathesquirrel.nes", "title": "Nova the Squirrel", "system": "nes", "author": "NovaSquirrel", "license": "GPL-3.0", "source": "https://github.com/NovaSquirrel/NovaTheSquirrel", "blurb": "A full platformer: copy enemies' abilities and cross seven worlds." },
-  { "file": "homebrew/thwaite.nes", "title": "Thwaite", "system": "nes", "author": "Damian Yerrick", "license": "GPL-3.0-or-later", "source": "https://github.com/pinobatch/thwaite-nes", "blurb": "Shoot down the missiles before they reach the town." },
-  { "file": "homebrew/croom.nes", "title": "Concentration Room", "system": "nes", "author": "Damian Yerrick", "license": "GPL-3.0-or-later", "source": "https://github.com/pinobatch/croom-nes", "blurb": "A card-matching memory game, for one or two." },
-  { "file": "homebrew/ucity.gbc", "title": "µCity", "system": "gbc", "author": "Antonio Niño Díaz", "license": "GPL-3.0-or-later", "source": "https://github.com/AntonioND/ucity", "blurb": "A city builder that fits on a Game Boy Color." }
+  {
+    "file": "homebrew/novathesquirrel.nes",
+    "title": "Nova the Squirrel",
+    "system": "nes",
+    "author": "NovaSquirrel",
+    "license": "GPL-3.0",
+    "source": "https://github.com/NovaSquirrel/NovaTheSquirrel",
+    "blurb": "A full platformer: copy enemies' abilities and cross seven worlds."
+  },
+  {
+    "file": "homebrew/thwaite.nes",
+    "title": "Thwaite",
+    "system": "nes",
+    "author": "Damian Yerrick",
+    "license": "GPL-3.0-or-later",
+    "source": "https://github.com/pinobatch/thwaite-nes",
+    "blurb": "Shoot down the missiles before they reach the town."
+  },
+  {
+    "file": "homebrew/croom.nes",
+    "title": "Concentration Room",
+    "system": "nes",
+    "author": "Damian Yerrick",
+    "license": "GPL-3.0-or-later",
+    "source": "https://github.com/pinobatch/croom-nes",
+    "blurb": "A card-matching memory game, for one or two."
+  },
+  {
+    "file": "homebrew/ucity.gbc",
+    "title": "µCity",
+    "system": "gbc",
+    "author": "Antonio Niño Díaz",
+    "license": "GPL-3.0-or-later",
+    "source": "https://github.com/AntonioND/ucity",
+    "blurb": "A city builder that fits on a Game Boy Color."
+  },
+  {
+    "file": "homebrew/miniplanets.md",
+    "title": "Miniplanets",
+    "system": "genesis",
+    "author": "Javier Degirolmo (Sik)",
+    "license": "Zlib",
+    "source": "https://github.com/sikthehedgehog/miniplanets",
+    "blurb": "A platformer on tiny 3D planets: run all the way round them."
+  },
+  {
+    "file": "homebrew/dragonscastle.md",
+    "title": "Dragon's Castle",
+    "system": "genesis",
+    "author": "Javier Degirolmo (Sik)",
+    "license": "Zlib",
+    "source": "https://github.com/sikthehedgehog/dragon",
+    "blurb": "A young witch, a castle and a dragon: a side-scrolling platformer."
+  },
+  {
+    "file": "homebrew/colormath.sfc",
+    "title": "Colour Maths Demo",
+    "system": "snes",
+    "author": "Doug Fraker",
+    "license": "MIT",
+    "source": "https://github.com/nesdoug/SNES_12",
+    "blurb": "Not a game: a small Super NES demo. Press A, B, X or Y to change the effect."
+  },
+  {
+    "file": "homebrew/voxelburg.gba",
+    "title": "Attack on Voxelburg",
+    "system": "gba",
+    "author": "Mutant Stargoat (nuclear)",
+    "license": "GPL-3.0-or-later",
+    "source": "https://github.com/MutantStargoat/voxelburg",
+    "blurb": "A 3D terrain shooter squeezed onto a Game Boy Advance."
+  },
+  {
+    "file": "homebrew/galacticquest.gba",
+    "title": "Galactic Quest",
+    "system": "gba",
+    "author": "origamiscienceguy",
+    "license": "GPL-3.0-only",
+    "source": "https://github.com/origamiscienceguy/Galactic_Quest",
+    "blurb": "Turn-based strategy among the stars."
+  }
 ]

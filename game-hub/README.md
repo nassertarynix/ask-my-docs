@@ -43,8 +43,10 @@ request to any other site. Click a card and the game starts.
 
 <img src="docs/retro-shelf.png" width="380"> <img src="docs/retro-play.png" width="380">
 
-- **Four free games are included** so it works straight away: Nova the Squirrel, Thwaite and Concentration Room (NES)
-  and µCity (Game Boy Color). All four are GPL homebrew; each card links to its source.
+- **Nine free games are included** so it works straight away, at least one for each console the deck was tested on:
+  Nova the Squirrel, Thwaite and Concentration Room (NES), Colour Maths Demo (Super NES), Miniplanets and Dragon's Castle
+  (Mega Drive), µCity (Game Boy Color), and Attack on Voxelburg and Galactic Quest (Game Boy Advance). All are open-source
+  homebrew; each card links to its source.
 - **Your own games, one click each.** Put the ROM files in `public/roms/` (sub-folders are fine) and run `npm run dev`.
   They appear on the shelf as cards, titled from the file name. That folder is ignored by git, so your files are never
   committed.
@@ -67,7 +69,7 @@ npm run dev          # http://localhost:5173
 
 ```bash
 npm test             # 184 unit tests (Vitest): terrain, physics, weapons, the match, the AI, storage, the ROM shelf
-npm run e2e          # 50 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
+npm run e2e          # 60 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
 npm run typecheck && npm run lint
 npm run build        # static files in dist/
 ```
@@ -106,9 +108,10 @@ What the tests check, among other things:
 ## Honest limitations
 
 - One original game and the emulator deck so far. The two "coming soon" cards are placeholders; they are not built.
-- The emulators were checked by automated browser tests (they boot, draw, take input, save and load) on NES and Game
-  Boy Color homebrew. The Super NES, Mega Drive and Game Boy Advance cores are wired the same way but no game for them
-  was run here, and nobody has judged sound or speed by ear or on a real phone.
+- The emulators were checked by automated browser tests: every core (NES, Super NES, Mega Drive, Game Boy Color, Game
+  Boy Advance) boots a free game, draws a picture and answers input. The original Game Boy core shares its code with the
+  Color one but had no game of its own to run. Nobody has judged sound or speed by ear or on a real phone, and the Super
+  NES had only a small demo, not a full game.
 - PlayStation, DOS, Nintendo DS and Windows games are not supported.
 - The emulator's sound does not follow the hub's mute button.
 - No online play: two players share one device.

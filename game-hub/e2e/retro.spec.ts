@@ -18,18 +18,21 @@ async function play(page: Page, selector: string) {
 const screen = (page: Page) => page.locator('.emu-canvas').screenshot();
 
 test.describe('the Retro Deck shelf', () => {
-  test('the hub has a card for it, and the shelf lists the four free homebrew games by console', async ({ page }) => {
+  test('the hub has a card for it, and the shelf lists the nine free homebrew games by console', async ({ page }) => {
     await page.goto('./');
     await expect(page.locator('a.card-live')).toHaveCount(2);
     await page.locator('[data-game="retro"]').click();
     await expect(page.locator('[data-screen="shelf"]')).toBeVisible();
-    await expect(page.locator('.cart')).toHaveCount(4);
+    await expect(page.locator('.cart')).toHaveCount(9);
     await expect(page.getByRole('region', { name: 'NES', exact: true }).locator('.cart')).toHaveCount(3);
+    await expect(page.getByRole('region', { name: 'Super NES' }).locator('.cart')).toHaveCount(1);
+    await expect(page.getByRole('region', { name: 'Mega Drive / Genesis' }).locator('.cart')).toHaveCount(2);
     await expect(page.getByRole('region', { name: 'Game Boy Color' }).locator('.cart')).toHaveCount(1);
-    await expect(page.locator('.cart[data-source="bundled"]')).toHaveCount(4);
+    await expect(page.getByRole('region', { name: 'Game Boy Advance' }).locator('.cart')).toHaveCount(2);
+    await expect(page.locator('.cart[data-source="bundled"]')).toHaveCount(9);
     // each one says who made it, under what licence, and links to its source
     await expect(page.locator(NOVA)).toContainText('GPL-3.0');
-    await expect(page.locator('.cart-source')).toHaveCount(4);
+    await expect(page.locator('.cart-source')).toHaveCount(9);
     for (const link of await page.locator('.cart-source').all()) expect(await link.getAttribute('href')).toMatch(/^https:\/\/github\.com\//);
     await expect(page.getByText('public/roms/')).toBeVisible();
   });
@@ -42,7 +45,7 @@ test.describe('the Retro Deck shelf', () => {
     ]);
     await expect(page.locator('.shelf-messages')).toContainText('notes.txt: not a ROM this deck can play.');
     await expect(page.locator('.shelf-messages')).toContainText('empty.nes: the file is empty.');
-    await expect(page.locator('.cart')).toHaveCount(4);
+    await expect(page.locator('.cart')).toHaveCount(9);
   });
 
   test('your own file: add it once, it stays on the shelf, it plays, and it can be removed', async ({ page }) => {
@@ -56,7 +59,7 @@ test.describe('the Retro Deck shelf', () => {
     await expect(mine).toContainText('In this browser');
     // adding the same file again does not make a second copy
     await page.getByLabel('Add game files').setInputFiles({ name: 'copy.nes', mimeType: 'application/octet-stream', buffer: rom });
-    await expect(page.locator('.cart')).toHaveCount(5);
+    await expect(page.locator('.cart')).toHaveCount(10);
 
     await page.reload();
     await expect(page.locator('.cart[data-source="imported"]')).toHaveCount(1);
@@ -65,7 +68,7 @@ test.describe('the Retro Deck shelf', () => {
 
     page.once('dialog', (d) => void d.accept());
     await page.locator('.cart-remove').click();
-    await expect(page.locator('.cart')).toHaveCount(4);
+    await expect(page.locator('.cart')).toHaveCount(9);
     await page.reload();
     await expect(page.locator('.cart').first()).toBeVisible();
     await expect(page.locator('.cart[data-source="imported"]')).toHaveCount(0);
@@ -152,11 +155,61 @@ test.describe('playing', () => {
     expect(new Set(await screen(page)).size).toBeGreaterThan(40);
   });
 
+  for (const [console, rom] of [
+    ['Mega Drive / Genesis', 'miniplanets.md'],
+    ['Mega Drive / Genesis', 'dragonscastle.md'],
+    ['Game Boy Advance', 'voxelburg.gba'],
+    ['Game Boy Advance', 'galacticquest.gba'],
+  ] as const) {
+    test(`the ${console} core runs ${rom}`, async ({ page }) => {
+      await openShelf(page);
+      await play(page, `[data-rom="bundled:homebrew/${rom}"]`);
+      await expect(emu(page).getByRole('heading')).toContainText(console);
+      // it draws a real picture, and the picture moves (the game is running, not frozen on one frame)
+      await expect.poll(async () => new Set(await screen(page)).size, { timeout: 20_000 }).toBeGreaterThan(40);
+      const first = await screen(page);
+      await expect
+        .poll(
+          async () => {
+            await page.keyboard.down('Enter');
+            await page.waitForTimeout(150);
+            await page.keyboard.up('Enter');
+            await page.waitForTimeout(600);
+            return !(await screen(page)).equals(first);
+          },
+          { timeout: 20_000 },
+        )
+        .toBe(true);
+    });
+  }
+
+  test('the Super NES core runs, and its face buttons arrive (the demo changes its effect on A)', async ({ page }) => {
+    await openShelf(page);
+    await play(page, '[data-rom="bundled:homebrew/colormath.sfc"]');
+    await expect(emu(page).getByRole('heading')).toContainText('Super NES');
+    await expect.poll(async () => new Set(await screen(page)).size, { timeout: 20_000 }).toBeGreaterThan(40);
+    await page.waitForTimeout(500);
+    const before = await screen(page);
+    expect((await screen(page)).equals(before)).toBe(true); // a still picture until a button is pressed
+    await expect
+      .poll(
+        async () => {
+          await page.keyboard.down('x'); // the keyboard's X is the pad's A
+          await page.waitForTimeout(150);
+          await page.keyboard.up('x');
+          await page.waitForTimeout(500);
+          return !(await screen(page)).equals(before);
+        },
+        { timeout: 20_000 },
+      )
+      .toBe(true);
+  });
+
   test('going back to the shelf stops the game, and another one can be started', async ({ page }) => {
     await openShelf(page);
     await play(page, NOVA);
     await page.getByRole('button', { name: 'Shelf' }).click();
-    await expect(page.locator('.cart')).toHaveCount(4);
+    await expect(page.locator('.cart')).toHaveCount(9);
     await play(page, '[data-rom="bundled:homebrew/croom.nes"]');
     await expect(emu(page).getByRole('heading')).toContainText('Concentration Room');
   });

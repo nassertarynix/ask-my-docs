@@ -55,16 +55,17 @@ describe('titles from file names', () => {
 describe('the bundled homebrew list', () => {
   const shelf = parseBundled(bundled);
 
-  it('lists four games, each with an author, an open licence and a link to its source', () => {
-    expect(shelf).toHaveLength(4);
+  it('lists nine games covering every console except the original Game Boy, each with an author, an open licence and a link to its source', () => {
+    expect(shelf).toHaveLength(9);
+    expect(new Set(shelf.map((e) => e.system))).toEqual(new Set(['nes', 'snes', 'genesis', 'gbc', 'gba']));
     for (const entry of shelf) {
       expect(entry.source).toBe('bundled');
       expect(entry.author).toBeTruthy();
-      expect(entry.license).toMatch(/^GPL-3\.0/);
+      expect(entry.license).toMatch(/^(GPL-3\.0(-or-later|-only)?|MIT|Zlib)$/);
       expect(entry.sourceUrl).toMatch(/^https:\/\/github\.com\//);
       expect(entry.blurb).toBeTruthy();
     }
-    expect(new Set(shelf.map((e) => e.id)).size).toBe(4);
+    expect(new Set(shelf.map((e) => e.id)).size).toBe(9);
   });
 
   it('every listed file is really there and really is a ROM for that console', () => {
@@ -74,6 +75,8 @@ describe('the bundled homebrew list', () => {
       expect(bytes.length).toBeGreaterThan(8000);
       if (entry.system === 'nes') expect(bytes.subarray(0, 4).toString('latin1')).toBe('NES\x1a'); // iNES header
       if (entry.system === 'gbc') expect(bytes[0x143]! & 0x80).toBe(0x80); // the Game Boy Color flag
+      if (entry.system === 'genesis') expect(bytes.subarray(0x100, 0x104).toString('latin1')).toBe('SEGA'); // the Mega Drive header
+      if (entry.system === 'gba') expect(bytes[0xb2]).toBe(0x96); // the fixed byte in every GBA header
     }
   });
 });

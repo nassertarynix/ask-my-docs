@@ -26,7 +26,7 @@ Pass `--trace off` to Playwright unless debugging.
 
 ## Retro Deck rules
 - **Never commit or publish a commercial ROM.** `public/roms/` is git-ignored (only its README is tracked). The only
-  ROMs in the repo are the four GPL homebrew games listed in THIRD_PARTY.md. Do not download ROMs from ROM sites.
+  ROMs in the repo are the open-source homebrew games listed in THIRD_PARTY.md. Do not download ROMs from ROM sites.
 - Cores are served from this site (`resolveCoreJs`/`resolveCoreWasm`); an e2e test fails on any request to another host.
 - `library.json` and `manifest.json` are data: paths must be relative with no `..` or scheme (`isSafeRelativePath`).
 - New third-party files need an entry in THIRD_PARTY.md. snes9x and genesis_plus_gx are non-commercial only.

@@ -30,8 +30,15 @@ Free software games, included unmodified. Each card on the shelf links to its so
 | Thwaite | NES | Damian Yerrick | GPL-3.0-or-later | https://github.com/pinobatch/thwaite-nes |
 | Concentration Room | NES | Damian Yerrick | GPL-3.0-or-later | https://github.com/pinobatch/croom-nes |
 | µCity | Game Boy Color | Antonio Niño Díaz | GPL-3.0-or-later | https://github.com/AntonioND/ucity |
+| Miniplanets (REMIX) | Mega Drive | Javier Degirolmo (Sik) | Zlib | https://github.com/sikthehedgehog/miniplanets |
+| Dragon's Castle | Mega Drive | Javier Degirolmo (Sik) | Zlib | https://github.com/sikthehedgehog/dragon |
+| Colour Maths Demo | Super NES | Doug Fraker | MIT | https://github.com/nesdoug/SNES_12 |
+| Attack on Voxelburg | Game Boy Advance | Mutant Stargoat (nuclear) | GPL-3.0-or-later | https://github.com/MutantStargoat/voxelburg |
+| Galactic Quest | Game Boy Advance | origamiscienceguy | GPL-3.0-only | https://github.com/origamiscienceguy/Galactic_Quest |
 
-The ROM files were downloaded from the [retrobrews](https://github.com/retrobrews) collections.
+The NES and Game Boy Color files came from the [retrobrews](https://github.com/retrobrews) collections, the Mega Drive and
+Super NES files from their authors' own repositories, and the Game Boy Advance files from the
+[Homebrew Hub](https://hh3.gbdev.io) database.
 
 ## Font
 

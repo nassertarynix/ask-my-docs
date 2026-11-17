@@ -121,7 +121,7 @@ src/retro/
 ├── RetroView.tsx   the shelf, import by button or drag and drop
 └── Player.tsx      Nostalgist.js + a RetroArch core, toolbar, touch pad
 public/retro/cores/     the cores (.js + .wasm), self-hosted
-public/retro/homebrew/  four GPL games, listed in public/retro/library.json
+public/retro/homebrew/  nine open-source games, listed in public/retro/library.json
 public/roms/            the owner's own files: git-ignored, listed into manifest.json by scripts/roms.mjs
 ```
 
