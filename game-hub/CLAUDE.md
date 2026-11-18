@@ -9,13 +9,12 @@ pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; READ
 ## Status and handoff (read this first in a new session)
 
 **What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
-MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS (board games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
+MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS, SHOGI (board games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
 MINE // SWEEP, WATER // SORT, PIC // ROSS (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
 games). A registry entry with `component: null` shows as a "coming soon" card; none is left at the moment.
 
 **The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
-- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess DONE. TODO:
-  Shogi, Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
+- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess, Shogi DONE. TODO: Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
   Lego Minotaurus (reskin), Dungeon Mayhem (deferred, reskin).
 - Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
   is the engine for these. **The owner wants to press a game and play it, using their own ROM files.** That work moves to
@@ -140,6 +139,13 @@ Pass `--trace off` to Playwright unless debugging.
   with `<=` chose a queen-losing pawn move at random; the filter is strict `<` plus the best move itself (a test proves it).
 - Time-limited searches are not repeatable, so a failing game cannot be replayed from its seed; replay it from the move list
   (the SAN is in the log) and test at a fixed depth.
+- **Shogi's engine is its own** (`shogi/engine.ts`, a mutable `Position` with make/unmake, moves packed into integers) and
+  is proved by perft: 30, 900, 25470, 719731. A first run gave 719788 because the hands array was indexed `side * 8 + code`
+  and gote's pawn (code 8) landed on index 16, past the end; the stride is 9. A second, naive generator in a throwaway test
+  agreed on every position to three plies, which is how the bug was narrowed to the hands and not the movement.
+- **Shogi UI**: tiles are SVG (pentagon plus kanji text, red when promoted); the board is turned half round (rows and columns
+  reversed) when gote is at the bottom. `?sfen=` in the hub URL starts from a given position, which the e2e tests use for
+  mates and drop rules. Optional promotion asks (Promote / Don't promote); forced promotion is applied silently.
 - Vitest hides `console.log` unless run with `--reporter=verbose`.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 

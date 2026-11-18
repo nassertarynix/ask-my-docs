@@ -16,6 +16,7 @@ import { picross } from '../games/picross';
 import { battleship } from '../games/battleship';
 import { airHockey } from '../games/air-hockey';
 import { chess } from '../games/chess';
+import { shogi } from '../games/shogi';
 
 export const GAMES: readonly GameEntry[] = [
   craterLab,
@@ -31,6 +32,7 @@ export const GAMES: readonly GameEntry[] = [
   waterSort,
   picross,
   chess,
+  shogi,
 ];
 
 export function findGame(id: string): GameEntry | undefined {

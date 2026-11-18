@@ -147,6 +147,18 @@ for (const [from, to] of [['e2', 'e4'], ['e7', 'e5'], ['g1', 'f3'], ['b8', 'c6']
 await page.locator('[data-square="c4"]').click();
 await page.screenshot({ path: `${out}/chess.png` });
 
+await page.goto(`${base}#/play/shogi`);
+await page.reload();
+await page.getByRole('radio', { name: /2 players/ }).check();
+await page.locator('[data-action="start"]').click();
+for (const [from, to] of [['7g', '7f'], ['3c', '3d'], ['8h', '2b'], ['3a', '2b'], ['2g', '2f'], ['8c', '8d']]) {
+  await page.locator(`[data-square="${from}"]`).click();
+  await page.locator(`[data-square="${to}"]`).click();
+  if (await page.locator('[data-promote="yes"]').count()) await page.locator('[data-promote="yes"]').click();
+}
+await page.locator('[data-hand="B"][data-owner="0"]').click();
+await page.screenshot({ path: `${out}/shogi.png` });
+
 await page.goto(`${base}#/play/water-sort`);
 await page.evaluate(() => localStorage.setItem('paper-arcade:game:water-sort', JSON.stringify({ level: 7 })));
 await page.reload();
