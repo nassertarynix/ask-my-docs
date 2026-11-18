@@ -9,14 +9,14 @@ pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; READ
 ## Status and handoff (read this first in a new session)
 
 **What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
-MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP (board games with computer opponents); SU // DOKU,
+MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP (board games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
 MINE // SWEEP, WATER // SORT, PIC // ROSS (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
 games). The hub shows a "coming soon" card for Chess until it is built (an entry with `component: null`).
 
 **The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
-- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship DONE. TODO:
+- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey DONE. TODO:
   Chess (chess.js),
-  Shogi, Air Hockey (real-time physics), Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
+  Shogi, Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
   Lego Minotaurus (reskin), Dungeon Mayhem (deferred, reskin).
 - Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
   is the engine for these. **The owner wants to press a game and play it, using their own ROM files.** That work moves to
@@ -126,6 +126,14 @@ Pass `--trace off` to Playwright unless debugging.
   the square that was clicked; use hover only for the preview.
 - **Battleship's AI only uses what a player would know** (its shots and the ships it has sunk). Two-player screens put
   everything secret behind `Curtain`, which renders nothing while hidden; the e2e test asserts no grid is in the page.
+- **A real-time game needs a stall rule.** Air Hockey's puck, if nobody touches it, sat still forever and a match against an
+  idle player never ended. A puck still for 5 s is now handed to the other half (`STALL_LIMIT`), as in the real game.
+- **Predict a sliding puck analytically.** With friction the same factor slows both velocity components, so the path is a
+  straight line; only the arrival time changes (`predictCrossing`). The first version approximated it and missed by 20 px.
+- **Size a fixed-shape canvas by width with `aspect-ratio`, not by height**: a fixed height plus a max-width squashed the
+  4:7 table on a narrow phone. Use `width: min(100%, calc((100dvh - bars) * w / h))` and `height: auto`.
+- **Canvas games: put the state the tests need in `data-*` attributes** on the canvas (puck and paddle positions, phase) and
+  offer a `?fast=N` URL parameter that runs the fixed-step simulation faster, so whole matches finish in seconds.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 
 ## Conventions

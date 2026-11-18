@@ -2034,3 +2034,42 @@ button.bs-cell:hover:not(:disabled) {
     max-width: 240px;
   }
 }
+
+/* ---------- air hockey ---------- */
+.ah-stage {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.ah-wrap {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+/* the table is 4:7: its width is whatever lets its height fit under the bars (never more than the screen), and the shape is held */
+.ah-table {
+  display: block;
+  width: min(100%, calc((100dvh - 210px) * 400 / 700));
+  min-width: min(100%, 240px);
+  height: auto;
+  aspect-ratio: 400 / 700;
+  border: var(--line);
+  border-width: 3px;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  background: #fff;
+  touch-action: none;
+  cursor: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ah-end {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(88%, 360px);
+  z-index: 5;
+}

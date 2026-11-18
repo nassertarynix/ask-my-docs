@@ -15,6 +15,7 @@ import { minesweeper } from '../games/minesweeper';
 import { waterSort } from '../games/water-sort';
 import { picross } from '../games/picross';
 import { battleship } from '../games/battleship';
+import { airHockey } from '../games/air-hockey';
 
 export const GAMES: readonly GameEntry[] = [
   craterLab,
@@ -23,6 +24,7 @@ export const GAMES: readonly GameEntry[] = [
   dotsBoxes,
   mancala,
   battleship,
+  airHockey,
   quoridor,
   sudoku,
   minesweeper,

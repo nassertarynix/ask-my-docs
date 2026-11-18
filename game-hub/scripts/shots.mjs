@@ -129,6 +129,13 @@ for (let i = 0; i < 14; i++) {
 }
 await page.screenshot({ path: `${out}/battleship.png` });
 
+await page.goto(`${base}#/play/air-hockey?fast=2`);
+await page.reload();
+await page.locator('[data-action="start"]').click();
+await page.mouse.move(700, 600, { steps: 4 });
+await page.waitForTimeout(6500);
+await page.screenshot({ path: `${out}/air-hockey.png` });
+
 await page.goto(`${base}#/play/water-sort`);
 await page.evaluate(() => localStorage.setItem('paper-arcade:game:water-sort', JSON.stringify({ level: 7 })));
 await page.reload();
