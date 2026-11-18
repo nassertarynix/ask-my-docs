@@ -118,6 +118,17 @@ await page.locator('[data-action="start"]').click();
 for (let i = 0; i < 18; i++) await page.locator('[data-action="hint"]').click();
 await page.screenshot({ path: `${out}/picross.png` });
 
+await page.goto(`${base}#/play/battleship`);
+await page.reload();
+await page.locator('[data-action="start"]').click();
+await page.locator('[data-action="random"]').click();
+await page.locator('[data-action="ready"]').click();
+for (let i = 0; i < 14; i++) {
+  await page.locator('.bs-big [data-state="water"]').nth(i * 3 % 40).click();
+  await page.waitForSelector('[data-fired="no"]', { timeout: 15000 });
+}
+await page.screenshot({ path: `${out}/battleship.png` });
+
 await page.goto(`${base}#/play/water-sort`);
 await page.evaluate(() => localStorage.setItem('paper-arcade:game:water-sort', JSON.stringify({ level: 7 })));
 await page.reload();

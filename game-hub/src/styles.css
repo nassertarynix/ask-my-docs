@@ -1897,3 +1897,140 @@ button.peg:active {
 .pc-board .pc-cell {
   border-top-color: #cfcdc4;
 }
+
+/* ---------- battleship ---------- */
+.bs-wrap,
+.bs-place {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+.bs-boards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.bs-title {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+.bs-grid {
+  display: grid;
+  grid-template-columns: 1.6em repeat(10, minmax(0, 1fr));
+  width: 100%;
+  border: var(--line);
+  border-width: 3px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  padding: 4px;
+}
+.bs-big {
+  max-width: 520px;
+}
+.bs-small {
+  max-width: 300px;
+  font-size: 0.7rem;
+}
+.bs-label {
+  display: grid;
+  place-items: center;
+  font-size: 0.75em;
+  font-weight: 700;
+  color: var(--muted);
+}
+.bs-cell {
+  aspect-ratio: 1;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #b9d3f2;
+  background: #e4f0ff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+}
+button.bs-cell {
+  cursor: crosshair;
+}
+button.bs-cell:hover:not(:disabled) {
+  background: #c9e0ff;
+}
+.bs-ship {
+  background: #8d8b82;
+  border-color: #5c5a52;
+}
+.bs-miss {
+  color: #5a7aa8;
+}
+.bs-hit {
+  background: #ffb4ab;
+  color: #b42318;
+  font-size: 1.1em;
+}
+.bs-sunk {
+  background: #18181b;
+  color: #ff5a4e;
+  border-color: #18181b;
+}
+.bs-ghost {
+  background: #9bd4a8;
+}
+.bs-ghost-bad {
+  background: #ff9c93;
+}
+.bs-fleet {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.bs-fleet li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.55;
+}
+.bs-fleet .bs-next {
+  opacity: 1;
+  text-decoration: underline;
+}
+.bs-fleet .bs-placed {
+  opacity: 1;
+  color: #15803d;
+}
+.bs-fleet small {
+  color: var(--muted);
+}
+.bs-pips {
+  display: inline-flex;
+  gap: 2px;
+}
+.bs-pips i {
+  width: 8px;
+  height: 8px;
+  background: var(--ink);
+  border-radius: 2px;
+}
+@media (max-width: 720px) {
+  .bs-boards {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+  .bs-boards > div {
+    width: 100%;
+    max-width: 520px;
+  }
+  .bs-small {
+    max-width: 240px;
+  }
+}

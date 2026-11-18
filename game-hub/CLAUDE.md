@@ -9,13 +9,13 @@ pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; READ
 ## Status and handoff (read this first in a new session)
 
 **What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
-MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR (board games with computer opponents); SU // DOKU,
+MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP (board games with computer opponents); SU // DOKU,
 MINE // SWEEP, WATER // SORT, PIC // ROSS (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
 games). The hub shows a "coming soon" card for Chess until it is built (an entry with `component: null`).
 
 **The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
-- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross DONE. TODO:
-  Battleship (needs the privacy curtain, `shared/Curtain.tsx`), Chess (chess.js),
+- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship DONE. TODO:
+  Chess (chess.js),
   Shogi, Air Hockey (real-time physics), Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
   Lego Minotaurus (reskin), Dungeon Mayhem (deferred, reskin).
 - Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
@@ -121,6 +121,11 @@ Pass `--trace off` to Playwright unless debugging.
   pointer is worked out by arithmetic (an overlay also hides squares from `elementFromPoint`).
 - **Picross puzzles are only kept if line logic solves them completely** (`solveByLogic`); an unsolvable-by-logic picture
   is repaired by filling some undecided squares and retrying, so generation always ends.
+- **Never depend on hover for an action a finger must perform.** Battleship placement first used the hover preview's square
+  to decide where a ship went, which works with a mouse and silently fails on touch (a tap fires no hover first). Work from
+  the square that was clicked; use hover only for the preview.
+- **Battleship's AI only uses what a player would know** (its shots and the ships it has sunk). Two-player screens put
+  everything secret behind `Curtain`, which renders nothing while hidden; the e2e test asserts no grid is in the page.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 
 ## Conventions
