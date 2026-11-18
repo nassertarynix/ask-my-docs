@@ -37,7 +37,7 @@ that reaches zero loses.
 
 ## The small games
 
-Six games for one or two players, each against a computer opponent (three levels) or a friend on the same device, and
+Seven games for one or two players, each against a computer opponent (three levels) or a friend on the same device, and
 four single-player puzzles. The rules live in plain, tested TypeScript; the screens are thin.
 
 | Game | What it is | The interesting part |
@@ -47,9 +47,10 @@ four single-player puzzles. The rules live in plain, tested TypeScript; the scre
 | **MAN // CALA** | Mancala (Kalah): sow stones, capture, extra turns | Alpha-beta search, up to ten moves deep; stones are sown one at a time on screen |
 | **AIR // HOCKEY** | Real-time air hockey: first to 5, 7 or 11 | A deterministic physics engine (fixed 1/60 s ticks, four sub-steps, so even the fastest puck cannot pass through a paddle) and a computer that predicts bounced shots. Two players use one finger each on their own half of the screen, or the keyboard |
 | **BATTLE // SHIP** | Hide a five-ship fleet and hunt the other one | Two-player mode uses the privacy curtain twice over: each fleet is placed behind one, and every turn starts behind one, with the other player's board not in the page at all. The hard computer works out, for every square, how many ways the surviving ships could lie through it |
+| **CHESS** | Full chess against the computer (three levels, either colour) or a friend on one screen | All the rules come from the chess.js library (castling, en passant, promotion, check, checkmate, stalemate, repetition, the fifty-move rule); the computer is an alpha-beta search with a capture search at the leaves and piece-square tables, and its levels differ only in depth and a little deliberate looseness, never in cheating. Legal squares are shown when you pick up a piece; pieces are hand-drawn SVG |
 | **QUOR // IDOR** | Race a pawn across the board and wall your rival in | A wall may never completely cut a pawn off: every placement is checked with a shortest-path search; pawns jump each other |
 
-<img src="docs/mastermind.png" width="190"> <img src="docs/dots-boxes.png" width="190"> <img src="docs/mancala.png" width="190"> <img src="docs/quoridor.png" width="190"> <img src="docs/battleship.png" width="190"> <img src="docs/air-hockey.png" width="150">
+<img src="docs/mastermind.png" width="190"> <img src="docs/dots-boxes.png" width="190"> <img src="docs/mancala.png" width="190"> <img src="docs/quoridor.png" width="190"> <img src="docs/battleship.png" width="190"> <img src="docs/air-hockey.png" width="150"> <img src="docs/chess.png" width="190">
 
 | Puzzle | What it is | The interesting part |
 | --- | --- | --- |
@@ -59,8 +60,6 @@ four single-player puzzles. The rules live in plain, tested TypeScript; the scre
 | **WATER // SORT** | Pour coloured layers until every tube is one colour | Levels are made from the level number and checked with a solver, so each can be won and the **hint** is the solver's next move; progress is remembered |
 
 <img src="docs/sudoku.png" width="190"> <img src="docs/minesweeper.png" width="190"> <img src="docs/water-sort.png" width="190"> <img src="docs/picross.png" width="190">
-
-Chess is on the hub as a "coming soon" card; it is not built.
 
 ## RETRO // DECK
 
@@ -95,8 +94,8 @@ npm run dev          # http://localhost:5173
 ```
 
 ```bash
-npm test             # 410 unit tests (Vitest): the artillery engine and AI, the four board games and their AIs, storage, the ROM shelf
-npm run e2e          # 224 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
+npm test             # 442 unit tests (Vitest): the artillery engine and AI, the board games and their AIs, storage, the ROM shelf
+npm run e2e          # 248 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
 npm run typecheck && npm run lint
 npm run build        # static files in dist/
 ```
@@ -135,7 +134,7 @@ computers, and "the computer never makes an illegal move"):
 
 ## Honest limitations
 
-- Eight original games and the emulator deck so far. The "coming soon" Chess card is a placeholder; it is not built.
+- Nine original games and the emulator deck so far.
 - The board-game AIs are search-based and honest about it: Dots and Boxes (hard) and Mancala (hard) are strong, Quoridor's
   levels are modest (it only considers walls near your pawn's route), and none of them has been tuned against human players.
 - The emulators were checked by automated browser tests: every core (NES, Super NES, Mega Drive, Game Boy Color, Game

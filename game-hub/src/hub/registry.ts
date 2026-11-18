@@ -2,7 +2,6 @@
  * Every game the hub knows about, in the order the cards appear.
  * Adding a game is one import and one entry here (see ARCHITECTURE.md).
  */
-import { Crown } from 'lucide-react';
 import type { GameEntry } from './types';
 import { craterLab } from '../games/crater-lab';
 import { retroDeck } from '../retro';
@@ -16,6 +15,7 @@ import { waterSort } from '../games/water-sort';
 import { picross } from '../games/picross';
 import { battleship } from '../games/battleship';
 import { airHockey } from '../games/air-hockey';
+import { chess } from '../games/chess';
 
 export const GAMES: readonly GameEntry[] = [
   craterLab,
@@ -30,15 +30,7 @@ export const GAMES: readonly GameEntry[] = [
   minesweeper,
   waterSort,
   picross,
-  {
-    id: 'chess',
-    title: 'CHESS',
-    tagline: 'The classic, with a computer opponent and a friend on the same screen.',
-    playerBadge: '1P / 2P',
-    accentColor: '#F5B700',
-    art: Crown,
-    component: null,
-  },
+  chess,
 ];
 
 export function findGame(id: string): GameEntry | undefined {

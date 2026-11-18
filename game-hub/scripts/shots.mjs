@@ -136,6 +136,17 @@ await page.mouse.move(700, 600, { steps: 4 });
 await page.waitForTimeout(6500);
 await page.screenshot({ path: `${out}/air-hockey.png` });
 
+await page.goto(`${base}#/play/chess`);
+await page.reload();
+await page.getByRole('radio', { name: /2 players/ }).check();
+await page.locator('[data-action="start"]').click();
+for (const [from, to] of [['e2', 'e4'], ['e7', 'e5'], ['g1', 'f3'], ['b8', 'c6'], ['f1', 'c4'], ['g8', 'f6'], ['f3', 'g5'], ['d7', 'd5'], ['e4', 'd5'], ['c6', 'a5']]) {
+  await page.locator(`[data-square="${from}"]`).click();
+  await page.locator(`[data-square="${to}"]`).click();
+}
+await page.locator('[data-square="c4"]').click();
+await page.screenshot({ path: `${out}/chess.png` });
+
 await page.goto(`${base}#/play/water-sort`);
 await page.evaluate(() => localStorage.setItem('paper-arcade:game:water-sort', JSON.stringify({ level: 7 })));
 await page.reload();

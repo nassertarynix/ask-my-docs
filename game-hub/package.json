@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@fontsource/space-grotesk": "^5.2.0",
+    "chess.js": "^1.4.0",
     "lucide-react": "^0.500.0",
     "nostalgist": "^0.23.0",
     "react": "^19.3.1",

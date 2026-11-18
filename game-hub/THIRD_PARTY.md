@@ -43,3 +43,9 @@ Super NES files from their authors' own repositories, and the Game Boy Advance f
 ## Font
 
 Space Grotesk, SIL Open Font License 1.1, via @fontsource.
+
+## Libraries
+
+| Library | Used for | Licence | Source |
+| --- | --- | --- | --- |
+| chess.js 1.4.0 | The rules of chess in CHESS (move generation, check, draws). The computer's search also calls three of its internal methods for speed; the version is pinned in `package-lock.json`. | BSD-2-Clause | https://github.com/jhlywa/chess.js |

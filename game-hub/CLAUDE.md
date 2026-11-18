@@ -9,13 +9,12 @@ pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; READ
 ## Status and handoff (read this first in a new session)
 
 **What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
-MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP (board games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
+MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS (board games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
 MINE // SWEEP, WATER // SORT, PIC // ROSS (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
-games). The hub shows a "coming soon" card for Chess until it is built (an entry with `component: null`).
+games). A registry entry with `component: null` shows as a "coming soon" card; none is left at the moment.
 
 **The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
-- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey DONE. TODO:
-  Chess (chess.js),
+- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess DONE. TODO:
   Shogi, Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
   Lego Minotaurus (reskin), Dungeon Mayhem (deferred, reskin).
 - Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
@@ -134,6 +133,14 @@ Pass `--trace off` to Playwright unless debugging.
   4:7 table on a narrow phone. Use `width: min(100%, calc((100dvh - bars) * w / h))` and `height: auto`.
 - **Canvas games: put the state the tests need in `data-*` attributes** on the canvas (puck and paddle positions, phase) and
   offer a `?fast=N` URL parameter that runs the fixed-step simulation faster, so whole matches finish in seconds.
+- **chess.js builds a SAN string for every move it lists**, which made the first search ten times too slow (depth 3 in 1.8 s).
+  `chess/ai.ts` therefore uses the library's internal `_moves/_makeMove/_undoMove/_board` (version pinned; `internals()`
+  throws if they are missing) and asks for SAN only for the move it plays.
+- **A cut-off root move's score is only a bound, and at variety 0 it ties with the best.** Picking "among the near-best"
+  with `<=` chose a queen-losing pawn move at random; the filter is strict `<` plus the best move itself (a test proves it).
+- Time-limited searches are not repeatable, so a failing game cannot be replayed from its seed; replay it from the move list
+  (the SAN is in the log) and test at a fixed depth.
+- Vitest hides `console.log` unless run with `--reporter=verbose`.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 
 ## Conventions
