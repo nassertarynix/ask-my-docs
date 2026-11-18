@@ -16,7 +16,9 @@ src/
 │   └── GameFrame.tsx        the top bar every game gets: Back, title, Sound, Reset
 ├── shared/
 │   ├── audio.ts             every sound, synthesised with the Web Audio API
-│   └── storage.ts           guarded, validated localStorage: per-game stats and settings
+│   ├── storage.ts           guarded, validated localStorage: per-game stats and settings
+│   ├── Curtain.tsx          the "pass the device, tap to reveal" privacy screen
+│   └── RadioCards.tsx       the big selectable option cards used by every setup screen
 └── games/crater-lab/
     ├── index.ts             the GameEntry (the game's code is lazy-loaded)
     ├── engine/              the simulation: no React, no DOM, no canvas, no clock, no Math.random
@@ -107,6 +109,20 @@ it refreshes whenever something visible changes; React renders from the snapshot
 `requestAnimationFrame` with a fixed-timestep accumulator (so game speed does not depend on the display's refresh rate),
 freezes for 40 ms on a direct hit, and draws. On screens narrower than the 2:1 field, the camera follows the action.
 Controls: drag on the field, the sliders, or the keyboard (arrows, Space, 1 to 5).
+
+## The board games (`src/games/mastermind`, `dots-boxes`, `mancala`, `quoridor`)
+
+Each is `engine.ts` (pure rules: state in, new state out, never mutating its input), `ai.ts` where there is a computer
+player, `GameView.tsx` (setup screen, board, result) and `index.ts` (the hub card), with tests next to them. Shared
+conventions:
+
+- **State is immutable.** `play(state, move)` returns a new state; the AI can search freely and the UI can keep old states.
+- **The AI is a pure function** of a state, a difficulty and a seeded `Rng`, so a game is reproducible.
+- **Hidden information goes behind `Curtain`.** Mastermind's two-player mode shows a curtain before each hand-over and
+  does not render the secret at all while the other player is guessing (a test checks the page text).
+- **Difficulty is search depth or noise**, never cheating: the AI only sees what the player sees plus the rules.
+- Setup screens share `RadioCards`; results share the `.end-card` style; stats go through `store.recordResult`
+  (one player against the computer counts as win/loss/draw, two players as "played").
 
 ## The Retro Deck (`src/retro/`)
 

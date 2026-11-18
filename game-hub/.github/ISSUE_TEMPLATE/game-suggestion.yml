@@ -1,0 +1,23 @@
+name: Game suggestion
+description: Suggest a game for the hub
+title: "[Game] "
+labels: ["game-suggestion"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Game name
+    validations:
+      required: true
+  - type: dropdown
+    id: players
+    attributes:
+      label: Players
+      options: ["1 player", "2 players, same device", "Both"]
+    validations:
+      required: true
+  - type: textarea
+    id: pitch
+    attributes:
+      label: How does it play?
+      description: A few sentences. Original rules or well-known public-domain games work best.

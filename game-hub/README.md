@@ -35,6 +35,22 @@ that reaches zero loses.
   the shake and the freeze are off.
 - Your wins and streak against the AI are kept on your device and shown on the hub card.
 
+## The small games
+
+Four pass-and-play board games, each against a computer opponent (three levels) or a friend on the same device. The rules
+live in plain, tested TypeScript; the screens are thin.
+
+| Game | What it is | The interesting part |
+| --- | --- | --- |
+| **MASTER // MIND** | Crack a hidden code of four colours in ten guesses | A privacy curtain hides the code-maker's screen before the device is handed over; the code is not in the page while the other player guesses. Pegs carry symbols as well as colours, and there is a hint |
+| **DOTS // BOXES** | Join the dots; close a box and move again | The hard level solves the end of the game exactly (every continuation, including the sacrifices that win long chains) |
+| **MAN // CALA** | Mancala (Kalah): sow stones, capture, extra turns | Alpha-beta search, up to ten moves deep; stones are sown one at a time on screen |
+| **QUOR // IDOR** | Race a pawn across the board and wall your rival in | A wall may never completely cut a pawn off: every placement is checked with a shortest-path search; pawns jump each other |
+
+<img src="docs/mastermind.png" width="190"> <img src="docs/dots-boxes.png" width="190"> <img src="docs/mancala.png" width="190"> <img src="docs/quoridor.png" width="190">
+
+Chess and Sudoku appear on the hub as "coming soon" cards; they are not built.
+
 ## RETRO // DECK
 
 Console games running in the browser: NES, Super NES, Mega Drive / Genesis, Game Boy, Game Boy Color and Game Boy
@@ -68,8 +84,8 @@ npm run dev          # http://localhost:5173
 ```
 
 ```bash
-npm test             # 184 unit tests (Vitest): terrain, physics, weapons, the match, the AI, storage, the ROM shelf
-npm run e2e          # 60 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
+npm test             # 282 unit tests (Vitest): the artillery engine and AI, the four board games and their AIs, storage, the ROM shelf
+npm run e2e          # 121 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
 npm run typecheck && npm run lint
 npm run build        # static files in dist/
 ```
@@ -95,7 +111,8 @@ deterministic for a given seed. The canvas and the HUD only read the state and s
 a game is one component and one entry. [ARCHITECTURE.md](ARCHITECTURE.md) explains the engine and gives the exact steps
 to add a second game in under five minutes.
 
-What the tests check, among other things:
+What the tests check, among other things (the board games are covered the same way: exact rule cases, whole games between
+computers, and "the computer never makes an illegal move"):
 
 - a crater column loses exactly `sqrt(r² - dx²)`; a mound adds exactly its raised-cosine profile;
 - the same shot in the same wind always follows the same path, and matches the closed-form solution of the equations;
@@ -107,7 +124,9 @@ What the tests check, among other things:
 
 ## Honest limitations
 
-- One original game and the emulator deck so far. The two "coming soon" cards are placeholders; they are not built.
+- Five original games and the emulator deck so far. The two "coming soon" cards (Chess, Sudoku) are placeholders; they are not built.
+- The board-game AIs are search-based and honest about it: Dots and Boxes (hard) and Mancala (hard) are strong, Quoridor's
+  levels are modest (it only considers walls near your pawn's route), and none of them has been tuned against human players.
 - The emulators were checked by automated browser tests: every core (NES, Super NES, Mega Drive, Game Boy Color, Game
   Boy Advance) boots a free game, draws a picture and answers input. The original Game Boy core shares its code with the
   Color one but had no game of its own to run. Nobody has judged sound or speed by ear or on a real phone, and the Super

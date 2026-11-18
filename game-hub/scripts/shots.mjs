@@ -51,6 +51,53 @@ await page.locator('[data-rom="bundled:homebrew/novathesquirrel.nes"]').click();
 await page.waitForSelector('[data-status="running"]');
 await page.waitForTimeout(2500);
 await page.screenshot({ path: `${out}/retro-play.png` });
+// the small games
+await page.goto(`${base}#/play/mastermind`);
+await page.reload();
+await page.getByRole('radio', { name: /Never/ }).check();
+await page.locator('[data-action="start"]').click();
+for (const guess of [[0, 1, 2, 3], [1, 0, 4, 5], [2, 1, 3, 4]]) {
+  for (const c of guess) await page.keyboard.press(String(c + 1));
+  await page.keyboard.press('Enter');
+}
+for (const c of [3, 1, 0]) await page.keyboard.press(String(c + 1));
+await page.screenshot({ path: `${out}/mastermind.png` });
+
+await page.goto(`${base}#/play/dots-boxes`);
+await page.reload();
+await page.getByRole('radio', { name: /2 players/ }).check();
+await page.locator('[data-action="start"]').click();
+for (const e of [0, 12, 3, 13, 1, 4, 14, 24, 25, 5, 15, 27, 26, 36]) await page.locator(`[data-edge="${e}"]`).click({ force: true });
+await page.screenshot({ path: `${out}/dots-boxes.png` });
+
+await page.goto(`${base}#/play/mancala`);
+await page.reload();
+await page.getByRole('radio', { name: /2 players/ }).check();
+await page.locator('[data-action="start"]').click();
+for (const pit of [2, 0, 12, 5]) {
+  await page.locator(`[data-pit="${pit}"]:not([disabled])`).click();
+  await page.waitForSelector('[data-busy="no"]');
+}
+await page.screenshot({ path: `${out}/mancala.png` });
+
+await page.goto(`${base}#/play/quoridor`);
+await page.reload();
+await page.getByRole('radio', { name: /2 players/ }).check();
+await page.locator('[data-action="start"]').click();
+const board = async (x, y) => {
+  const box = await page.locator('.qd-board').boundingBox();
+  const span = 12 * 2 + 9 * 40 + 8 * 10;
+  return { x: box.x + (x / span) * box.width, y: box.y + (y / span) * box.height };
+};
+await page.locator('[data-dest="7,4"]').click();
+await page.locator('[data-dest="1,4"]').click();
+await page.locator('[data-dest="6,4"]').click();
+for (const [x, y] of [[217, 207], [117, 107]]) {
+  await page.locator('[data-action="mode-wall"]').click();
+  const p = await board(x, y);
+  await page.mouse.click(p.x, p.y);
+}
+await page.screenshot({ path: `${out}/quoridor.png` });
 await desktop.close();
 
 const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });

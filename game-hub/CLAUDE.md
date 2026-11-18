@@ -58,6 +58,16 @@ Pass `--trace off` to Playwright unless debugging.
   and collapsed. Retro classes are prefixed (`emu-`, `cart-`, `pad-`, `shelf-`).
 - `.md` is both Markdown and a Mega Drive ROM: `README.md` is excluded by name in `systems.ts` and `scripts/roms.mjs`.
 - Nostalgist asks for a screen wake lock; a headless browser refuses and logs a page error. Tests ignore that one message.
+- **A wall-count weight decides whether a Quoridor AI plays well.** Valuing a wall in hand at ~1.5 steps made both AIs spend
+  a wall for a one-step gain until none were left, and games dragged to 100+ turns. At 12 points (a bit over a step) walls
+  are kept for gains of two or more steps, or one step when the opponent is close to winning.
+- **Test "this wall traps a pawn" with a real enclosure.** A corridor with an open row at the end is not enclosed; the pen
+  in `quoridor/__tests__` (two vertical walls and a closing horizontal one) is.
+- **Mancala: a lap of 13 stones ends in the pit it started from, which is empty, so it captures.** That is correct Kalah.
+- **Dots and Boxes hard solves the endgame exactly** (`SOLVE_LIMIT` 14 free edges). At 16 the test suite took seven seconds
+  per game; keep the limit low and the search memoised by the drawn-edge pattern.
+- Board-game browser tests that play a whole game must wait on a deadline, not a fixed number of clicks: animation and the
+  computer's thinking pause make the time vary under load.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 
 ## Conventions

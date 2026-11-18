@@ -2,6 +2,7 @@ import { Flame, Trophy } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import { GAMES } from './registry';
 import { gameHref } from './route';
+import { SUGGEST_URL } from './config';
 import type { GameEntry } from './types';
 import { store } from '../shared/storage';
 import { sfx } from '../shared/audio';
@@ -72,6 +73,13 @@ export function HubHome() {
       </main>
       <footer className="hub-footer">
         <p>Everything runs in your browser. Nothing is uploaded; your stats stay on this device.</p>
+        <p>
+          Got an idea for a game?{' '}
+          <a href={SUGGEST_URL} target="_blank" rel="noreferrer noopener" data-action="suggest">
+            Suggest one
+          </a>
+          .
+        </p>
       </footer>
     </div>
   );
