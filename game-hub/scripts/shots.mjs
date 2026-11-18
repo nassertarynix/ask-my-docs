@@ -111,6 +111,13 @@ await page.locator('[data-cell="40"]').click();
 await page.locator('[data-cell="0"]').click({ button: 'right' });
 await page.screenshot({ path: `${out}/minesweeper.png` });
 
+await page.goto(`${base}#/play/picross?seed=4`);
+await page.reload();
+await page.getByRole('radio', { name: /10 × 10/ }).check();
+await page.locator('[data-action="start"]').click();
+for (let i = 0; i < 18; i++) await page.locator('[data-action="hint"]').click();
+await page.screenshot({ path: `${out}/picross.png` });
+
 await page.goto(`${base}#/play/water-sort`);
 await page.evaluate(() => localStorage.setItem('paper-arcade:game:water-sort', JSON.stringify({ level: 7 })));
 await page.reload();

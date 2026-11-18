@@ -1803,3 +1803,97 @@ button.peg:active {
     gap: 16px 10px;
   }
 }
+
+/* ---------- picross ---------- */
+.pc-wrap {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  container-type: inline-size;
+}
+.pc-box {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+}
+.pc-board {
+  --cell: min(36px, calc(100cqw / (var(--n) + var(--slots) * 0.78)));
+  --clue: calc(var(--slots) * var(--cell) * 0.78);
+  display: grid;
+  grid-template-columns: var(--clue) repeat(var(--n), var(--cell));
+  grid-template-rows: var(--clue) repeat(var(--n), var(--cell));
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+.pc-clue {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--cell) * 0.2);
+  padding: calc(var(--cell) * 0.08);
+  font-size: calc(var(--cell) * 0.5);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.pc-clue-col {
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: calc(var(--cell) * 0.04);
+  line-height: 1;
+}
+.pc-clue-row {
+  padding-right: calc(var(--cell) * 0.2);
+}
+.pc-done {
+  color: #b4b2a8;
+}
+.pc-cell {
+  display: grid;
+  place-items: center;
+  border: 1px solid #cfcdc4;
+  background: #fff;
+  color: #8d8b82;
+  font-size: calc(var(--cell) * 0.62);
+  font-weight: 700;
+  line-height: 1;
+}
+.pc-on {
+  background: var(--ink);
+}
+.pc-solved .pc-on {
+  background: var(--accent, #ff8fb1);
+  border-color: var(--ink);
+}
+.pc-off {
+  background: #f6f4ec;
+}
+.pc-bad {
+  background: #ff5a4e;
+  color: #fff;
+}
+.pc-gap-r {
+  border-right: 2px solid var(--ink);
+}
+.pc-gap-b {
+  border-bottom: 2px solid var(--ink);
+}
+.pc-cell:first-of-type {
+  border-left: 2px solid var(--ink);
+}
+.pc-overlay {
+  /* absolutely placed, so it takes no grid cells: it just covers the n x n squares and catches the drag */
+  position: absolute;
+  left: var(--clue);
+  top: var(--clue);
+  right: 0;
+  bottom: 0;
+  cursor: crosshair;
+  touch-action: none;
+  z-index: 2;
+}
+.pc-board .pc-cell {
+  border-top-color: #cfcdc4;
+}

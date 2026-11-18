@@ -10,12 +10,12 @@ pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; READ
 
 **What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
 MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR (board games with computer opponents); SU // DOKU,
-MINE // SWEEP, WATER // SORT (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
+MINE // SWEEP, WATER // SORT, PIC // ROSS (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
 games). The hub shows a "coming soon" card for Chess until it is built (an entry with `component: null`).
 
 **The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
-- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort DONE. TODO:
-  Battleship (needs the privacy curtain, `shared/Curtain.tsx`), Picross/Nonograms, Chess (chess.js),
+- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross DONE. TODO:
+  Battleship (needs the privacy curtain, `shared/Curtain.tsx`), Chess (chess.js),
   Shogi, Air Hockey (real-time physics), Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
   Lego Minotaurus (reskin), Dungeon Mayhem (deferred, reskin).
 - Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
@@ -116,6 +116,11 @@ Pass `--trace off` to Playwright unless debugging.
   budget so a bad position cannot hang the page.
 - E2E: clicking a game's control may clear transient UI (a hint highlight), so read everything you need from the page
   *before* the click that clears it.
+- **A grid item with an explicit `grid-area` blocks auto-placement of the others.** Picross's drag overlay first sat in the
+  grid and pushed every square out of place; it is now `position: absolute` over the squares, and the square under the
+  pointer is worked out by arithmetic (an overlay also hides squares from `elementFromPoint`).
+- **Picross puzzles are only kept if line logic solves them completely** (`solveByLogic`); an unsolvable-by-logic picture
+  is repaired by filling some undecided squares and retrying, so generation always ends.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 
 ## Conventions

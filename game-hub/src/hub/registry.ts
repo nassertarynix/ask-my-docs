@@ -13,6 +13,7 @@ import { quoridor } from '../games/quoridor';
 import { sudoku } from '../games/sudoku';
 import { minesweeper } from '../games/minesweeper';
 import { waterSort } from '../games/water-sort';
+import { picross } from '../games/picross';
 
 export const GAMES: readonly GameEntry[] = [
   craterLab,
@@ -24,6 +25,7 @@ export const GAMES: readonly GameEntry[] = [
   sudoku,
   minesweeper,
   waterSort,
+  picross,
   {
     id: 'chess',
     title: 'CHESS',

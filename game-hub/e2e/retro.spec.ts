@@ -20,7 +20,7 @@ const screen = (page: Page) => page.locator('.emu-canvas').screenshot();
 test.describe('the Retro Deck shelf', () => {
   test('the hub has a card for it, and the shelf lists the nine free homebrew games by console', async ({ page }) => {
     await page.goto('./');
-    await expect(page.locator('a.card-live')).toHaveCount(9);
+    await expect(page.locator('a.card-live')).toHaveCount(10);
     await page.locator('[data-game="retro"]').click();
     await expect(page.locator('[data-screen="shelf"]')).toBeVisible();
     await expect(page.locator('.cart')).toHaveCount(9);

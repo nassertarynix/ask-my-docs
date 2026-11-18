@@ -37,7 +37,7 @@ that reaches zero loses.
 
 ## The small games
 
-Four pass-and-play board games, each against a computer opponent (three levels) or a friend on the same device, and three
+Four pass-and-play board games, each against a computer opponent (three levels) or a friend on the same device, and four
 single-player puzzles. The rules live in plain, tested TypeScript; the screens are thin.
 
 | Game | What it is | The interesting part |
@@ -53,9 +53,10 @@ single-player puzzles. The rules live in plain, tested TypeScript; the screens a
 | --- | --- | --- |
 | **SU // DOKU** | Sudoku at three difficulties, with pencil notes, undo, hints and a "check" | Every puzzle is generated from a seed and **proven to have exactly one solution** (the generator only removes a clue if a solver still finds one answer) |
 | **MINE // SWEEP** | Minesweeper: beginner, intermediate, expert | The first click is always safe, mines are placed after it; flood-fill opening, flags (right-click or long-press) and chording |
+| **PIC // ROSS** | Picross (Nonograms): number clues beside each row and column reveal a pixel picture | Pictures are generated from a seed and kept only if **line logic alone solves them**, so there is never any guessing; drag to paint, mark squares empty, clues grey out when a line is right |
 | **WATER // SORT** | Pour coloured layers until every tube is one colour | Levels are made from the level number and checked with a solver, so each can be won and the **hint** is the solver's next move; progress is remembered |
 
-<img src="docs/sudoku.png" width="190"> <img src="docs/minesweeper.png" width="190"> <img src="docs/water-sort.png" width="190">
+<img src="docs/sudoku.png" width="190"> <img src="docs/minesweeper.png" width="190"> <img src="docs/water-sort.png" width="190"> <img src="docs/picross.png" width="190">
 
 Chess is on the hub as a "coming soon" card; it is not built.
 
@@ -92,8 +93,8 @@ npm run dev          # http://localhost:5173
 ```
 
 ```bash
-npm test             # 336 unit tests (Vitest): the artillery engine and AI, the four board games and their AIs, storage, the ROM shelf
-npm run e2e          # 174 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
+npm test             # 360 unit tests (Vitest): the artillery engine and AI, the four board games and their AIs, storage, the ROM shelf
+npm run e2e          # 192 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
 npm run typecheck && npm run lint
 npm run build        # static files in dist/
 ```
