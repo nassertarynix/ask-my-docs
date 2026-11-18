@@ -98,6 +98,25 @@ for (const [x, y] of [[217, 207], [117, 107]]) {
   await page.mouse.click(p.x, p.y);
 }
 await page.screenshot({ path: `${out}/quoridor.png` });
+await page.goto(`${base}#/play/sudoku?seed=5`);
+await page.reload();
+await page.locator('[data-action="start"]').click();
+await page.locator('[data-cell="40"]').click();
+await page.screenshot({ path: `${out}/sudoku.png` });
+
+await page.goto(`${base}#/play/minesweeper?seed=3`);
+await page.reload();
+await page.locator('[data-action="start"]').click();
+await page.locator('[data-cell="40"]').click();
+await page.locator('[data-cell="0"]').click({ button: 'right' });
+await page.screenshot({ path: `${out}/minesweeper.png` });
+
+await page.goto(`${base}#/play/water-sort`);
+await page.evaluate(() => localStorage.setItem('paper-arcade:game:water-sort', JSON.stringify({ level: 7 })));
+await page.reload();
+await page.locator('[data-action="start"]').click();
+await page.locator('[data-tube="1"]').click();
+await page.screenshot({ path: `${out}/water-sort.png` });
 await desktop.close();
 
 const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });

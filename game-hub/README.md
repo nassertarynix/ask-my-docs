@@ -37,8 +37,8 @@ that reaches zero loses.
 
 ## The small games
 
-Four pass-and-play board games, each against a computer opponent (three levels) or a friend on the same device. The rules
-live in plain, tested TypeScript; the screens are thin.
+Four pass-and-play board games, each against a computer opponent (three levels) or a friend on the same device, and three
+single-player puzzles. The rules live in plain, tested TypeScript; the screens are thin.
 
 | Game | What it is | The interesting part |
 | --- | --- | --- |
@@ -49,7 +49,15 @@ live in plain, tested TypeScript; the screens are thin.
 
 <img src="docs/mastermind.png" width="190"> <img src="docs/dots-boxes.png" width="190"> <img src="docs/mancala.png" width="190"> <img src="docs/quoridor.png" width="190">
 
-Chess and Sudoku appear on the hub as "coming soon" cards; they are not built.
+| Puzzle | What it is | The interesting part |
+| --- | --- | --- |
+| **SU // DOKU** | Sudoku at three difficulties, with pencil notes, undo, hints and a "check" | Every puzzle is generated from a seed and **proven to have exactly one solution** (the generator only removes a clue if a solver still finds one answer) |
+| **MINE // SWEEP** | Minesweeper: beginner, intermediate, expert | The first click is always safe, mines are placed after it; flood-fill opening, flags (right-click or long-press) and chording |
+| **WATER // SORT** | Pour coloured layers until every tube is one colour | Levels are made from the level number and checked with a solver, so each can be won and the **hint** is the solver's next move; progress is remembered |
+
+<img src="docs/sudoku.png" width="190"> <img src="docs/minesweeper.png" width="190"> <img src="docs/water-sort.png" width="190">
+
+Chess is on the hub as a "coming soon" card; it is not built.
 
 ## RETRO // DECK
 
@@ -84,8 +92,8 @@ npm run dev          # http://localhost:5173
 ```
 
 ```bash
-npm test             # 282 unit tests (Vitest): the artillery engine and AI, the four board games and their AIs, storage, the ROM shelf
-npm run e2e          # 121 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
+npm test             # 336 unit tests (Vitest): the artillery engine and AI, the four board games and their AIs, storage, the ROM shelf
+npm run e2e          # 174 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
 npm run typecheck && npm run lint
 npm run build        # static files in dist/
 ```
@@ -124,7 +132,7 @@ computers, and "the computer never makes an illegal move"):
 
 ## Honest limitations
 
-- Five original games and the emulator deck so far. The two "coming soon" cards (Chess, Sudoku) are placeholders; they are not built.
+- Eight original games and the emulator deck so far. The "coming soon" Chess card is a placeholder; it is not built.
 - The board-game AIs are search-based and honest about it: Dots and Boxes (hard) and Mancala (hard) are strong, Quoridor's
   levels are modest (it only considers walls near your pawn's route), and none of them has been tuned against human players.
 - The emulators were checked by automated browser tests: every core (NES, Super NES, Mega Drive, Game Boy Color, Game

@@ -11,29 +11,29 @@ async function startMatch(page: Page, options: { mode?: 'ai' | 'pvp'; difficulty
 }
 
 test.describe('the hub', () => {
-  test('shows one playable game and two coming soon, and opens the game', async ({ page }) => {
+  test('shows the playable games and the coming-soon card, and opens a game', async ({ page }) => {
     const problems: string[] = [];
     page.on('pageerror', (e) => problems.push(String(e)));
     page.on('console', (m) => m.type() === 'error' && problems.push(m.text()));
     await page.goto('./');
     await expect(page.getByRole('heading', { level: 1 })).toContainText('PAPER');
-    await expect(page.locator('.card')).toHaveCount(8);
-    await expect(page.locator('a.card-live')).toHaveCount(6);
-    await expect(page.locator('.card-placeholder')).toHaveCount(2);
-    await expect(page.getByText('Coming soon')).toHaveCount(2);
+    await expect(page.locator('.card')).toHaveCount(10);
+    await expect(page.locator('a.card-live')).toHaveCount(9);
+    await expect(page.locator('.card-placeholder')).toHaveCount(1);
+    await expect(page.getByText('Coming soon')).toHaveCount(1);
     await page.locator('[data-game="crater-lab"]').click();
     await expect(page).toHaveURL(/#\/play\/crater-lab/);
     await expect(page.locator('[data-screen="setup"]')).toBeVisible();
     await page.getByRole('button', { name: 'Back to the hub' }).click();
-    await expect(page.locator('.card')).toHaveCount(8);
+    await expect(page.locator('.card')).toHaveCount(10);
     expect(problems).toEqual([]);
   });
 
   test('an unknown game address falls back to the hub', async ({ page }) => {
     await page.goto('./#/play/does-not-exist');
-    await expect(page.locator('.card')).toHaveCount(8);
+    await expect(page.locator('.card')).toHaveCount(10);
     await page.goto('./#/play/orbit-golf'); // a "coming soon" game has nothing to open
-    await expect(page.locator('.card')).toHaveCount(8);
+    await expect(page.locator('.card')).toHaveCount(10);
   });
 
   test('makes no requests to other sites', async ({ page }) => {

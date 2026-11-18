@@ -6,6 +6,46 @@ Guidance for Claude Code (and any other agent or developer) working in this fold
 **CRATER // LAB**, a destructible-terrain artillery duel. It is a portfolio project by Al-Nasser Haddad (the owner;
 pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; README claims must be backed by a test.
 
+## Status and handoff (read this first in a new session)
+
+**What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
+MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR (board games with computer opponents); SU // DOKU,
+MINE // SWEEP, WATER // SORT (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
+games). The hub shows a "coming soon" card for Chess until it is built (an entry with `component: null`).
+
+**The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
+- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort DONE. TODO:
+  Battleship (needs the privacy curtain, `shared/Curtain.tsx`), Picross/Nonograms, Chess (chess.js),
+  Shogi, Air Hockey (real-time physics), Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
+  Lego Minotaurus (reskin), Dungeon Mayhem (deferred, reskin).
+- Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
+  is the engine for these. **The owner wants to press a game and play it, using their own ROM files.** That work moves to
+  a separate PRIVATE repository (the owner is creating it), because commercial ROMs must not be in a public repo.
+  Do not download ROMs from the internet. See "Retro Deck rules" below.
+- Tier 3, arcade staples (Icy Tower, Zuma-like, Bomberman-like, Puyo/Dr. Mario-like, Pac-Man/Tetris/Minesweeper):
+  Minesweeper DONE; the rest TODO. Build under generic names and original art; Tetris, Pac-Man and similar names are
+  enforced trademarks.
+- Not possible in a browser emulator: PlayStation discs are heavy (js/wasm PS1 is possible but slow on phones), DOS needs
+  js-dos (not built), Nintendo DS and Java ME are impractical, modern PC/console games and Windows-only games cannot run.
+
+**Decisions already made** (keep unless the owner changes them):
+- Keep the hash-routed, lazy-loaded hub; do not switch to a Vite multi-page build or Tailwind.
+- Reskin proprietary board games (Splendor -> Gem Merchants, Lego Minotaurus, Dungeon Mayhem).
+- The "Suggest a game" link opens `.github/ISSUE_TEMPLATE/game-suggestion.yml`; its repository URL is `src/hub/config.ts`
+  and must be updated when this folder moves into its own repository.
+- Difficulty is search depth or aiming noise, never cheating.
+- Nothing is deployed yet. A build made with ROMs in `public/roms/` must only go somewhere private.
+
+**Adding a small game (the routine)**: `src/games/<id>/engine.ts` (pure, immutable, with `__tests__/engine.test.ts`),
+`ai.ts` if there is a computer player, `GameView.tsx` (setup screen using `RadioCards`, board, `.end-card` result,
+`store.recordResult`), `index.ts` (the `GameEntry`, lazy), then one line in `src/hub/registry.ts`, an `e2e/<id>.spec.ts`
+(hub card, a played game, no sideways scrolling at 320/390/1280 px), and bump the card counts in `e2e/game.spec.ts` and
+`e2e/retro.spec.ts`. Update README (table and test counts) and this file's status list. Verify: `npm run typecheck`,
+`npm run lint`, `npm test`, `npm run build`, `npx playwright test --trace off`.
+
+**Known limits**: sound has never been heard by a person and the emulator ignores the hub's mute button; touch controls
+are only tested in emulated phone sizes; Quoridor's AI is modest; no game has been tried on a real phone.
+
 ## Commands
 
 ```bash
@@ -68,6 +108,14 @@ Pass `--trace off` to Playwright unless debugging.
   per game; keep the limit low and the search memoised by the drawn-edge pattern.
 - Board-game browser tests that play a whole game must wait on a deadline, not a fixed number of clicks: animation and the
   computer's thinking pause make the time vary under load.
+- **Sudoku generation must check uniqueness on every removal** (`countSolutions(puzzle, 2) === 1`), or a puzzle can have two
+  answers and a hint can contradict the player's correct entry.
+- **Minesweeper places mines on the first click**, never on that square or its neighbours; a wide board scrolls inside
+  its own box (`.ms-scroll`) so the page never scrolls sideways.
+- **Water Sort level n is always the same puzzle** (seeded by n), generated until the solver can win it; the solver has a node
+  budget so a bad position cannot hang the page.
+- E2E: clicking a game's control may clear transient UI (a hint highlight), so read everything you need from the page
+  *before* the click that clears it.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 
 ## Conventions

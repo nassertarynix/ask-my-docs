@@ -2,7 +2,7 @@
  * Every game the hub knows about, in the order the cards appear.
  * Adding a game is one import and one entry here (see ARCHITECTURE.md).
  */
-import { Crown, Grid3x3 } from 'lucide-react';
+import { Crown } from 'lucide-react';
 import type { GameEntry } from './types';
 import { craterLab } from '../games/crater-lab';
 import { retroDeck } from '../retro';
@@ -10,6 +10,9 @@ import { mastermind } from '../games/mastermind';
 import { dotsBoxes } from '../games/dots-boxes';
 import { mancala } from '../games/mancala';
 import { quoridor } from '../games/quoridor';
+import { sudoku } from '../games/sudoku';
+import { minesweeper } from '../games/minesweeper';
+import { waterSort } from '../games/water-sort';
 
 export const GAMES: readonly GameEntry[] = [
   craterLab,
@@ -18,6 +21,9 @@ export const GAMES: readonly GameEntry[] = [
   dotsBoxes,
   mancala,
   quoridor,
+  sudoku,
+  minesweeper,
+  waterSort,
   {
     id: 'chess',
     title: 'CHESS',
@@ -25,15 +31,6 @@ export const GAMES: readonly GameEntry[] = [
     playerBadge: '1P / 2P',
     accentColor: '#F5B700',
     art: Crown,
-    component: null,
-  },
-  {
-    id: 'sudoku',
-    title: 'SUDOKU',
-    tagline: 'Fill the grid so every row, column and box holds 1 to 9 once.',
-    playerBadge: '1P',
-    accentColor: '#7DD3A8',
-    art: Grid3x3,
     component: null,
   },
 ];
