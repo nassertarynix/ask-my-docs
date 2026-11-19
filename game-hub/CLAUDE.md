@@ -8,62 +8,119 @@ pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; READ
 
 ## Status and handoff (read this first in a new session)
 
-**What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
-MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS, SHOGI, GEM // MERCHANTS, PIT // BRAWL, LABY // RINTH (board and card games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
-MINE // SWEEP, WATER // SORT, PIC // ROSS (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
-games). A registry entry with `component: null` shows as a "coming soon" card; none is left at the moment.
+Written so that a session with no memory of the earlier conversation can carry on. Last verified state: **17 games on the
+hub, 679 unit tests, 394 browser tests (2 phone-only skips on desktop), typecheck, lint and build clean, CI green** (last commit
+`230f7bc` in the monorepo).
 
-**The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
-- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess, Shogi, Splendor (as Gem Merchants), Dungeon Mayhem (as Pit Brawl, up to 10 players), Lego Minotaurus (as LABY // RINTH, placeholder maze) DONE. TODO: Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
-- Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
-  is the engine for these. **The owner wants to press a game and play it, using their own ROM files.** That work moves to
-  a separate PRIVATE repository (the owner is creating it), because commercial ROMs must not be in a public repo.
-  Do not download ROMs from the internet. See "Retro Deck rules" below.
-- Tier 3, arcade staples (Icy Tower, Zuma-like, Bomberman-like, Puyo/Dr. Mario-like, Pac-Man/Tetris/Minesweeper):
-  Minesweeper DONE; the rest TODO. Build under generic names and original art; Tetris, Pac-Man and similar names are
-  enforced trademarks.
-- Not possible in a browser emulator: PlayStation discs are heavy (js/wasm PS1 is possible but slow on phones), DOS needs
-  js-dos (not built), Nintendo DS and Java ME are impractical, modern PC/console games and Windows-only games cannot run.
+### Where the code and the site live (important, partly outside this repo)
+- This folder is `game-hub/` inside the monorepo `ask-my-docs` (GitHub account of the session). The root `CLAUDE.md` says each
+  project folder must stay self-contained because the owner copies folders into their own repos. CI that actually runs lives in
+  the root `.github/workflows/game-hub.yml`; the folder's own `.github/workflows/` is for when it is its own repo.
+- **The owner has already split the folders into separate repos and deployed the hub on Cloudflare Pages** from their
+  *personal* GitHub account: https://the-game-hub.pages.dev . **That live site is an OLDER version** (built before most of the
+  games below). The owner's personal repo is private and is NOT reachable from sessions connected to the monorepo's account.
+- **The owner wants to connect their personal GitHub so sessions can push there directly** (faster work). Options that were
+  explained: (A) connect/reconnect at https://claude.ai/connect-github and install the Claude GitHub App on the personal
+  repo, then attach it with `add_repo`; (B) no link: give the owner a PowerShell (Windows) script that copies this folder into
+  their repo (skip `.git`, `node_modules`, `dist`) for them to review and push. The owner has not yet said which, nor the repo name.
+  Cloudflare Pages rebuilds on every push to that repo, so pushing updates the live site.
+- **When syncing into the personal repo, do not blindly overwrite it.** Compare first and keep the owner's own versions of
+  `src/hub/config.ts` (`REPO_URL` points at their repo), their workflow files and deployment settings. `public/roms/` must stay
+  git-ignored. `RELAY_URL` stays empty until the relay is deployed.
+- A new session cannot see the earlier chat. Start it with the personal repo selected and tell it to read this file first.
 
-**Decisions already made** (keep unless the owner changes them):
-- Keep the hash-routed, lazy-loaded hub; do not switch to a Vite multi-page build or Tailwind.
-- Reskin proprietary board games (Splendor -> Gem Merchants, Lego Minotaurus, Dungeon Mayhem).
+### The games (17 cards in `src/hub/registry.ts`; each in `src/games/<id>/`)
+| Card | Folder | Players | Notes |
+| --- | --- | --- | --- |
+| CRATER // LAB | `crater-lab` | 1-2 | the original artillery duel (headless engine + shot-solving AI) |
+| RETRO // DECK | `src/retro` | 1 | WebAssembly emulators, nine free homebrew games; the owner's own ROMs go in a separate PRIVATE repo |
+| MASTER // MIND, DOTS // BOXES, MAN // CALA, BATTLE // SHIP, QUOR // IDOR | `mastermind` `dots-boxes` `mancala` `battleship` `quoridor` | 1-2 | board games vs computer (3 levels) or same-screen 2P; privacy `Curtain` for hidden info |
+| AIR // HOCKEY | `air-hockey` | 1-2 | real-time physics |
+| CHESS | `chess` | 1-2 | rules from chess.js; the AI uses its internal move generator for speed (version pinned) |
+| SHOGI | `shogi` | 1-2 | own rules engine, proved by perft (30, 900, 25470, 719731) |
+| SU // DOKU, MINE // SWEEP, WATER // SORT, PIC // ROSS | `sudoku` `minesweeper` `water-sort` `picross` | 1 | puzzles |
+| GEM // MERCHANTS | `gem-merchants` | 2-4 | Splendor-style, original cards; **online-capable** |
+| PIT // BRAWL | `pit-brawl` | 2-10 | Dungeon-Mayhem-style, ten original heroes; **online-capable** |
+| LABY // RINTH | `labyrinth` | 2-4 | Lego-Minotaurus-style, Greek theme; **online-capable; PLACEHOLDER maze** |
+
+### The owner's master list and what is left
+34 titles in three tiers (from their own spec).
+- Tier 1 custom-logic games: all done except **Hedbanz / Heads Up** (TODO).
+- Tier 2 platformers via emulator (Mario, Sonic, Kirby, Prince of Persia ...): RETRO // DECK is the engine. The owner wants to
+  press a game and play it with their own ROM files; that work happens in a separate PRIVATE repo (commercial ROMs must not be in
+  a public repo). Never download ROMs from the internet. See "Retro Deck rules".
+- Tier 3 arcade staples (Icy Tower-, Zuma-, Bomberman-, Puyo/Dr. Mario-, Pac-Man/Tetris-like): Minesweeper done, the rest TODO.
+  Use generic names and original art (Tetris, Pac-Man etc. are enforced trademarks).
+- Not possible in a browser emulator: PlayStation discs (heavy), DOS (needs js-dos, not built), Nintendo DS and Java ME, modern
+  PC/console games, Windows-only games.
+
+### Open tasks, in rough priority order
+1. Sync this folder to the owner's personal repo (see above) once they pick an option; then check the live site updates.
+2. **Deploy the online relay** (Cloudflare Worker in `relay/`, see "Online play") and set `RELAY_URL`; until then online mode
+   says "not switched on" and solo play works.
+3. **Real LABY // RINTH maze** (see its section): needs the last page of the building instructions from the owner.
+4. Hedbanz / Heads Up; the Tier 3 arcade games.
+5. A visual redesign run (the owner says most visuals are plain and wants a dedicated pass later: do not polish art now).
+6. Try games on a real phone; hear the sound; make the emulator respect the mute button.
+
+### Decisions already made (keep unless the owner changes them)
+- Keep the hash-routed, lazy-loaded hub; no Vite multi-page build, no Tailwind.
+- Reskin proprietary games with original names, art and cards (Splendor -> Gem Merchants, Dungeon Mayhem -> Pit Brawl, Lego
+  Minotaurus -> Laby // Rinth with Greek-myth theme). Game *rules* may be reused; names, art, card lists and layouts must be original.
+- Difficulty is search depth or noise, never cheating.
+- Multiplayer without a database that can sleep: a **dumb relay on Cloudflare Workers** (not Supabase, which the owner rejects
+  because projects pause after inactivity). Everything is built first and connected later.
+- Basic rules only for Laby // Rinth (no house-rule variants yet).
 - The "Suggest a game" link opens `.github/ISSUE_TEMPLATE/game-suggestion.yml`; its repository URL is `src/hub/config.ts`
-  and must be updated when this folder moves into its own repository.
-- Difficulty is search depth or aiming noise, never cheating.
-- Nothing is deployed yet. A build made with ROMs in `public/roms/` must only go somewhere private.
+  and must be the owner's repo wherever the code is deployed from.
+- A build made with ROMs in `public/roms/` must only ever go somewhere private.
 
-**Adding a small game (the routine)**: `src/games/<id>/engine.ts` (pure, immutable, with `__tests__/engine.test.ts`),
-`ai.ts` if there is a computer player, `GameView.tsx` (setup screen using `RadioCards`, board, `.end-card` result,
-`store.recordResult`), `index.ts` (the `GameEntry`, lazy), then one line in `src/hub/registry.ts`, an `e2e/<id>.spec.ts`
-(hub card, a played game, no sideways scrolling at 320/390/1280 px), and bump the card counts in `e2e/game.spec.ts` and
-`e2e/retro.spec.ts`. Update README (table and test counts) and this file's status list. Verify: `npm run typecheck`,
-`npm run lint`, `npm test`, `npm run build`, `npx playwright test --trace off`.
+### How the owner likes to work (observed)
+- Picks games one at a time ("chess", "shogi", ...); wants each one fully finished, tested, pushed, CI-checked.
+- Wants decisions explained plainly before large choices, and honest limits (what could not be verified, what was guessed).
+- Prefers short status answers; keeps notes in this file so work can continue in other sessions.
+- Works on Windows. Do not use pronouns for the owner (not stated). Never ask them to paste secrets or tokens into chat.
 
-**Online play (built, NOT connected)**: GEM // MERCHANTS (up to 4) and PIT // BRAWL (up to 10) can be played against computers (no network) or online (2-4 players,
-computers fill empty seats). The owner chose **Cloudflare** for the relay and said to build everything first and connect it
-later: `relay/` holds the Worker, Durable Object, wrangler.toml and README; `src/hub/config.ts` has `RELAY_URL = ''`, so the
-game shows "Online play is not switched on yet". To connect: deploy the Worker, set `RELAY_URL`, set `ALLOWED_ORIGINS` in
-wrangler.toml to the hub's address, redeploy, rebuild. Nothing else in the repo needs to change. `src/net/` is generic: any
-game that is "seed + list of actions" can reuse it by writing an `Adapter`.
+### The routine for adding a game
+`src/games/<id>/engine.ts` (pure, immutable, with `__tests__/engine.test.ts`), `ai.ts` if there is a computer player,
+`GameView.tsx` (setup screen using `RadioCards`, board, `.end-card` result, `store.recordResult`), `index.ts` (the `GameEntry`,
+lazy), one line in `src/hub/registry.ts`, an `e2e/<id>.spec.ts` (hub card, a played game, no sideways scrolling at 320/390/1280
+px), and bump the card counts in `e2e/game.spec.ts` and `e2e/retro.spec.ts` (currently 17). Update the README (table, screenshot,
+test counts) and this file. Add a screenshot step to `scripts/shots.mjs`. Verify: `npm run typecheck`, `npm run lint`,
+`npx vitest run`, `npm run build`, `npx playwright test --trace off`. Then commit (imperative summary, short why, plus the
+`Co-Authored-By` and `Claude-Session` trailers the session gives) and push to `main`; watch CI with
+`gh run list --workflow game-hub.yml` until the commit's run finishes. Online-capable games also need an `online.ts` adapter
+that validates every network input, and a lobby; copy `pit-brawl` or `labyrinth`.
 
-**LABY // RINTH: the maze is a PLACEHOLDER (open task).** The owner wants the board game's real maze (their worry was that
-a self-designed maze might break the movement maths; it does not, the maths is exact-N path enumeration and is tested).
-`src/games/labyrinth/maze.ts` holds the whole board as ASCII (`#` hedge, `.` open, `M` lair, `a-d` start squares, `A-D` goal
-squares, `w` a movable wall at the start); everything else reads it. The owner's own photo (eBay listing) was too small to
-transcribe by stud, so **ask for the last page of the building instructions in the booklet PDF** (a clear top-down picture
-of the finished maze, plus where the grey walls start and how many there are), transcribe it, and replace `ROWS`.
-After swapping: (1) the real maze is probably not 4-way symmetric, so change the "is fair" test in
-`labyrinth/__tests__/engine.test.ts` from equality to printing each corner's distance and asking the owner whether it looks
-right; (2) corners need at least two goal squares each (the loader enforces it) and three start squares; (3) re-run the
-bot-game length simulation, since 3-4 player games last only ~6 turns each on the small placeholder.
-Basic rules only (no variants). Rules the booklet leaves open were decided and are written at the top of `labyrinth/engine.ts`.
-The rules are the booklet's pages 6-8 (the owner pasted screenshots): die faces 3,4,5,6, wall, Minotaur; exact squares;
-Minotaur exactly 8 squares, hit hero goes to its start, Minotaur goes to the temple; no exact roll needed onto your goal;
-2 players need 2 heroes home, 3-4 need 1; walls may never block every route from a start block to the temple.
+### Online play (built, NOT connected)
+GEM // MERCHANTS (up to 4), PIT // BRAWL (up to 10) and LABY // RINTH (up to 4) can be played against computers (no network) or
+online (computers fill empty seats). `relay/` holds the Worker, Durable Object, `wrangler.toml` and a README with the deploy
+steps; `src/hub/config.ts` has `RELAY_URL = ''`, so online mode shows "not switched on". To connect: deploy the Worker, set
+`RELAY_URL`, set `ALLOWED_ORIGINS` in `wrangler.toml` to the hub's address (https://the-game-hub.pages.dev), redeploy,
+rebuild. Nothing else needs to change. `src/net/` is generic: any game that is "seed + list of actions" can reuse it by writing
+an `Adapter`. The room's size is set per game by the creator's `join` message (`max`, 2-10). `npm run relay:dev` runs a local
+copy of the relay (the browser tests start it themselves).
 
-**Known limits**: sound has never been heard by a person and the emulator ignores the hub's mute button; touch controls
-are only tested in emulated phone sizes; Quoridor's AI is modest; no game has been tried on a real phone.
+### LABY // RINTH: the maze is a PLACEHOLDER (open task)
+The owner wants the board game's real maze (their worry was that a self-designed maze might break the movement maths; it does
+not, the maths is exact-N path enumeration and is tested). `src/games/labyrinth/maze.ts` holds the whole board as ASCII (`#`
+hedge, `.` open, `M` lair, `a-d` start squares, `A-D` goal squares, `w` a movable wall at the start); everything else reads it.
+The owner's own photo (eBay listing) was too small to transcribe by stud, so **ask for the last page of the building
+instructions in the booklet PDF** (a clear top-down picture of the finished maze, plus where the grey walls start and how many
+there are), transcribe it, and replace `ROWS`. After swapping: (1) the real maze is probably not 4-way symmetric, so change the
+"is fair" test in `labyrinth/__tests__/engine.test.ts` from equality to printing each corner's distance and asking the owner
+whether it looks right; (2) corners need at least two goal squares each (the loader enforces it) and three start squares;
+(3) re-run the bot-game length simulation, since 3-4 player games last only ~6 turns each on the small placeholder.
+Rules (booklet pages 6-8, pasted by the owner as screenshots): die faces 3, 4, 5, 6, wall, Minotaur; exact squares; the Minotaur
+moves exactly 8 squares, a hero it hits goes to its start and the Minotaur goes to the temple; no exact roll needed onto your goal;
+2 players need 2 heroes home, 3-4 need 1; walls may never block every route from a start block to the temple. Rules the booklet
+leaves open were decided and are written at the top of `labyrinth/engine.ts`.
+
+### Known limits
+Sound has never been heard by a person and the emulator ignores the hub's mute button; touch controls are only tested in
+emulated phone sizes; Quoridor's AI is modest; no game has been tried on a real phone; online play has only been tested through
+the local relay, never over the real internet; online games are friendly (every device knows the whole game, so devtools can
+peek at hidden cards).
 
 ## Commands
 
