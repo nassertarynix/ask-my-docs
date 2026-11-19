@@ -51,9 +51,10 @@ four single-player puzzles. The rules live in plain, tested TypeScript; the scre
 | **SHOGI** | Japanese chess against the computer (three levels, either side) or a friend on one screen, with kanji or letter tiles | The full rules written from scratch and proved with a move-count check (30, 900, 25 470 and 719 731 positions at one to four moves, the published figures): drops, optional and forced promotion, no two pawns on a file, no pawn drop that mates, perpetual check and four-fold repetition. The computer is an alpha-beta search that also reasons about pieces in hand; tap a piece to see its squares, tap a captured piece to see where it may drop |
 | **GEM // MERCHANTS** | Collect gems, buy stalls that make later buys cheaper, attract patrons; first to 15 ends the round. 2 to 4 players, against computers or online with friends | An original reskin of the engine-building card genre (original stalls, colours and shapes, so it can be played without telling colours apart). The rules are a pure engine; a game is a seed plus a list of actions, so online play only has to send tiny moves and every device replays the same list. See *Online play* below |
 | **PIT // BRAWL** | A fast free-for-all card brawl: ten original heroes, each with a 20-card deck, for 2 to 10 players, against computers or online | Everyone hits, shields, heals, steals and sweeps until one hero is left. Shields wear off at the start of your next turn and health scales with table size (10 up to four players, 22 for ten), because playtesting the first version showed bots turtling behind permanent shields for hundreds of turns and ten players wiping each other out in three turns each. A test keeps all ten decks equally priced |
+| **LABY // RINTH** | Race three heroes through a hedge maze to the temple while the Minotaur guards it: roll to move a hero an exact number of squares, wall in your rivals, or send the Minotaur charging. 2 to 4 players, against computers or online | A race game on a grid with a data-driven maze (`src/games/labyrinth/maze.ts`). The rules are a pure engine; moves are checked by enumerating every path of exactly N squares, the wall rule keeps a route open for every player, and the Minotaur's eight-square charge sends any hero it hits back to its start. **The maze in the repo is a placeholder** (four-way symmetric, so it is fair), not the board game's own layout |
 | **QUOR // IDOR** | Race a pawn across the board and wall your rival in | A wall may never completely cut a pawn off: every placement is checked with a shortest-path search; pawns jump each other |
 
-<img src="docs/mastermind.png" width="190"> <img src="docs/dots-boxes.png" width="190"> <img src="docs/mancala.png" width="190"> <img src="docs/quoridor.png" width="190"> <img src="docs/battleship.png" width="190"> <img src="docs/air-hockey.png" width="150"> <img src="docs/chess.png" width="190"> <img src="docs/shogi.png" width="190"> <img src="docs/gem-merchants.png" width="190"> <img src="docs/pit-brawl.png" width="190">
+<img src="docs/mastermind.png" width="190"> <img src="docs/dots-boxes.png" width="190"> <img src="docs/mancala.png" width="190"> <img src="docs/quoridor.png" width="190"> <img src="docs/battleship.png" width="190"> <img src="docs/air-hockey.png" width="150"> <img src="docs/chess.png" width="190"> <img src="docs/shogi.png" width="190"> <img src="docs/gem-merchants.png" width="190"> <img src="docs/pit-brawl.png" width="190"> <img src="docs/labyrinth.png" width="190">
 
 | Puzzle | What it is | The interesting part |
 | --- | --- | --- |
@@ -64,14 +65,14 @@ four single-player puzzles. The rules live in plain, tested TypeScript; the scre
 
 <img src="docs/sudoku.png" width="190"> <img src="docs/minesweeper.png" width="190"> <img src="docs/water-sort.png" width="190"> <img src="docs/picross.png" width="190">
 
-## Online play (GEM // MERCHANTS and PIT // BRAWL, not connected yet)
+## Online play (GEM // MERCHANTS, PIT // BRAWL and LABY // RINTH, not connected yet)
 
 The hub stays a static site. Rooms need a small relay, written for **Cloudflare Workers** (`relay/`, free plan, does not pause when
 idle). It is deliberately dumb: it keeps rooms and seats and an ordered log of actions and forwards each action to everyone.
 It never looks at a game's rules. Every device replays the same log through the same engine, so devices agree, and an
 illegal or out-of-turn action changes nothing for anyone.
 
-- A room has a five-letter code and an invite link. The game sets the room's size (GEM // MERCHANTS 4, PIT // BRAWL 10); empty seats are computers played by the host's device.
+- A room has a five-letter code and an invite link. The game sets the room's size (GEM // MERCHANTS 4, PIT // BRAWL 10, LABY // RINTH 4); empty seats are computers played by the host's device.
 - A refreshed or sleeping tab rejoins its seat (the browser keeps a token) and replays the log; if the host leaves, the next
   player's device plays the computers.
 - Everything from the network is size-checked and parsed before use; names are cleaned; actions are checked field by field.
@@ -112,8 +113,8 @@ npm run dev          # http://localhost:5173
 ```
 
 ```bash
-npm test             # 634 unit tests (Vitest): the artillery engine and AI, the board games and their AIs, storage, the ROM shelf
-npm run e2e          # 356 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
+npm test             # 679 unit tests (Vitest): the artillery engine and AI, the board games and their AIs, storage, the ROM shelf
+npm run e2e          # 394 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
 npm run typecheck && npm run lint
 npm run build        # static files in dist/
 ```
@@ -152,7 +153,8 @@ computers, and "the computer never makes an illegal move"):
 
 ## Honest limitations
 
-- Twelve original games and the emulator deck so far.
+- Thirteen original games and the emulator deck so far.
+- LABY // RINTH is playable but uses a **placeholder maze**; the real layout is to be transcribed from the board game's building instructions (see `CLAUDE.md`).
 - Online play is built and tested but **not connected**: the room relay (`relay/`, a Cloudflare Worker) has not been deployed, so
   `RELAY_URL` is empty and the game says online play is not switched on. Solo play against computers needs no relay.
 - Online games are between friends: every device holds the whole game (so a determined player could read the deck order in

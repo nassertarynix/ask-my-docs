@@ -3082,3 +3082,149 @@ button.pb-target:hover {
 .pb-pile {
   color: var(--muted);
 }
+
+/* ---------- laby // rinth ---------- */
+.lb-wrap {
+  width: min(100%, 640px);
+}
+.lb-players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.lb-roll {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lb-roll .board-status {
+  text-align: left;
+  margin: 0;
+}
+.lb-die {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 64px;
+  height: 64px;
+  padding: 0 8px;
+  border: var(--line);
+  border-width: 3px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.lb-die-wall {
+  background: #cfcfd4;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+.lb-die-minotaur {
+  background: #2b2b31;
+  color: #fff;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.lb-board {
+  width: min(100%, 600px);
+  aspect-ratio: 1;
+  display: grid;
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 1px;
+  padding: 3px;
+  border: var(--line);
+  border-width: 3px;
+  border-radius: 8px;
+  background: #1d4d2b;
+  box-shadow: var(--shadow);
+}
+.lb-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: #2f7d45;
+  font: inherit;
+  color: var(--ink);
+}
+button.lb-cell {
+  cursor: pointer;
+}
+.lb-hedge {
+  background: #a6d84a;
+  box-shadow: inset 0 0 0 2px #7cb02a;
+}
+.lb-start {
+  background: var(--team);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+.lb-goal {
+  background: color-mix(in srgb, var(--team) 80%, #2f7d45);
+  box-shadow: inset 0 0 0 2px var(--team), inset 0 0 0 4px rgba(0, 0, 0, 0.3);
+}
+.lb-lair {
+  background: #e2b24a;
+  box-shadow: inset 0 0 0 2px #8a5a12;
+}
+.lb-wall {
+  background: #c9c9ce;
+  box-shadow: inset 0 0 0 2px #6b6b73, inset -2px -2px 0 3px rgba(0, 0, 0, 0.12);
+}
+.lb-target::after {
+  content: '';
+  position: absolute;
+  width: 46%;
+  height: 46%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid var(--ink);
+}
+.lb-hit {
+  box-shadow: inset 0 0 0 3px #e5484d;
+}
+.lb-ready {
+  box-shadow: 0 0 0 2px #fff;
+  z-index: 1;
+}
+.lb-picked {
+  box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #fff;
+  z-index: 2;
+}
+.lb-hero {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 82%;
+  height: 82%;
+  border: 2px solid #18181b;
+  border-radius: 50%;
+  background: var(--team);
+  color: var(--ink);
+  font-size: clamp(7px, 1.8vw, 11px);
+  font-weight: 800;
+  line-height: 1;
+}
+.lb-minotaur {
+  position: absolute;
+  inset: -12%;
+  z-index: 3;
+  width: 124%;
+  height: 124%;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6));
+}
+.lb-legend {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}

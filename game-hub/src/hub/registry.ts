@@ -19,6 +19,7 @@ import { chess } from '../games/chess';
 import { shogi } from '../games/shogi';
 import { gemMerchants } from '../games/gem-merchants';
 import { pitBrawl } from '../games/pit-brawl';
+import { labyrinth } from '../games/labyrinth';
 
 export const GAMES: readonly GameEntry[] = [
   craterLab,
@@ -37,6 +38,7 @@ export const GAMES: readonly GameEntry[] = [
   shogi,
   gemMerchants,
   pitBrawl,
+  labyrinth,
 ];
 
 export function findGame(id: string): GameEntry | undefined {

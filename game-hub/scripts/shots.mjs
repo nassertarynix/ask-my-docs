@@ -194,6 +194,16 @@ await page.locator('.pb-card[data-name="Cleaver Chop"]').click();
 await page.evaluate(() => window.scrollTo(0, 0));
 await page.screenshot({ path: `${out}/pit-brawl.png`, fullPage: true });
 
+await page.goto(`${base}#/play/labyrinth?seed=1`);
+await page.reload();
+await page.getByRole('radio', { name: /Three players/ }).check();
+await page.locator('[data-action="start"]').click();
+await page.waitForSelector('[data-screen="play"]');
+await page.waitForFunction(() => { const p = document.querySelector('[data-screen="play"]'); return !!p && p.getAttribute('data-turn') === p.getAttribute('data-my-seat'); }, null, { timeout: 15000 }).catch(() => undefined);
+if (await page.locator('.lb-ready').count()) await page.locator('.lb-ready').first().click();
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.screenshot({ path: `${out}/labyrinth.png`, fullPage: true });
+
 await page.goto(`${base}#/play/water-sort`);
 await page.evaluate(() => localStorage.setItem('paper-arcade:game:water-sort', JSON.stringify({ level: 7 })));
 await page.reload();

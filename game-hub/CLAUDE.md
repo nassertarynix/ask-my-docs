@@ -9,13 +9,12 @@ pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; READ
 ## Status and handoff (read this first in a new session)
 
 **What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
-MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS, SHOGI, GEM // MERCHANTS, PIT // BRAWL (board and card games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
+MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS, SHOGI, GEM // MERCHANTS, PIT // BRAWL, LABY // RINTH (board and card games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
 MINE // SWEEP, WATER // SORT, PIC // ROSS (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
 games). A registry entry with `component: null` shows as a "coming soon" card; none is left at the moment.
 
 **The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
-- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess, Shogi, Splendor (as Gem Merchants), Dungeon Mayhem (as Pit Brawl, up to 10 players) DONE. TODO: Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
-  Lego Minotaurus (reskin).
+- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess, Shogi, Splendor (as Gem Merchants), Dungeon Mayhem (as Pit Brawl, up to 10 players), Lego Minotaurus (as LABY // RINTH, placeholder maze) DONE. TODO: Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
 - Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
   is the engine for these. **The owner wants to press a game and play it, using their own ROM files.** That work moves to
   a separate PRIVATE repository (the owner is creating it), because commercial ROMs must not be in a public repo.
@@ -47,6 +46,21 @@ later: `relay/` holds the Worker, Durable Object, wrangler.toml and README; `src
 game shows "Online play is not switched on yet". To connect: deploy the Worker, set `RELAY_URL`, set `ALLOWED_ORIGINS` in
 wrangler.toml to the hub's address, redeploy, rebuild. Nothing else in the repo needs to change. `src/net/` is generic: any
 game that is "seed + list of actions" can reuse it by writing an `Adapter`.
+
+**LABY // RINTH: the maze is a PLACEHOLDER (open task).** The owner wants the board game's real maze (their worry was that
+a self-designed maze might break the movement maths; it does not, the maths is exact-N path enumeration and is tested).
+`src/games/labyrinth/maze.ts` holds the whole board as ASCII (`#` hedge, `.` open, `M` lair, `a-d` start squares, `A-D` goal
+squares, `w` a movable wall at the start); everything else reads it. The owner's own photo (eBay listing) was too small to
+transcribe by stud, so **ask for the last page of the building instructions in the booklet PDF** (a clear top-down picture
+of the finished maze, plus where the grey walls start and how many there are), transcribe it, and replace `ROWS`.
+After swapping: (1) the real maze is probably not 4-way symmetric, so change the "is fair" test in
+`labyrinth/__tests__/engine.test.ts` from equality to printing each corner's distance and asking the owner whether it looks
+right; (2) corners need at least two goal squares each (the loader enforces it) and three start squares; (3) re-run the
+bot-game length simulation, since 3-4 player games last only ~6 turns each on the small placeholder.
+Basic rules only (no variants). Rules the booklet leaves open were decided and are written at the top of `labyrinth/engine.ts`.
+The rules are the booklet's pages 6-8 (the owner pasted screenshots): die faces 3,4,5,6, wall, Minotaur; exact squares;
+Minotaur exactly 8 squares, hit hero goes to its start, Minotaur goes to the temple; no exact roll needed onto your goal;
+2 players need 2 heroes home, 3-4 need 1; walls may never block every route from a start block to the temple.
 
 **Known limits**: sound has never been heard by a person and the emulator ignores the hub's mute button; touch controls
 are only tested in emulated phone sizes; Quoridor's AI is modest; no game has been tried on a real phone.
@@ -176,6 +190,11 @@ Pass `--trace off` to Playwright unless debugging.
   joiner); a game's adapter and lobby enforce the rest. Gem Merchants sends 4, Pit Brawl 10.
 - Do not put infinite CSS animation on something a test (or a shaky thumb) must click: Playwright waits for it to stop moving.
   Use a static highlight.
+- **Because a move's only lasting effects are where it ends, LABY // RINTH takes a destination, not a traced path.** Nothing
+  happens along the way (no pickups; a Minotaur that meets a hero stops there), so "is there a simple path of exactly N free
+  squares to this square" is all the UI needs, and a tap on the destination is the whole action.
+- **A dangling `else` after a `for` is easy to write and wrong**: the first version of the Laby targets code bound the `else`
+  to the inner `if`, and TypeScript caught it as an impossible comparison. Use braces when mixing loops and else-ifs.
 - Vitest hides `console.log` unless run with `--reporter=verbose`.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 
