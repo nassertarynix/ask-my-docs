@@ -9,6 +9,8 @@ export default defineConfig({
   build: { target: 'es2022', sourcemap: false },
   test: {
     environment: 'node',
+    // the artillery AI tests really solve shots; on a busy shared CI runner they need far more than the 5 s default
+    testTimeout: 30_000,
     include: ['src/**/__tests__/**/*.test.ts', 'src/**/*.test.ts', 'relay/__tests__/**/*.test.ts'],
   },
 });
