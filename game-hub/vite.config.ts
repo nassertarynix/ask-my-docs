@@ -9,6 +9,6 @@ export default defineConfig({
   build: { target: 'es2022', sourcemap: false },
   test: {
     environment: 'node',
-    include: ['src/**/__tests__/**/*.test.ts', 'src/**/*.test.ts'],
+    include: ['src/**/__tests__/**/*.test.ts', 'src/**/*.test.ts', 'relay/__tests__/**/*.test.ts'],
   },
 });

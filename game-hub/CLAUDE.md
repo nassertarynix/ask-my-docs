@@ -9,12 +9,12 @@ pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; READ
 ## Status and handoff (read this first in a new session)
 
 **What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
-MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS, SHOGI (board games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
+MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS, SHOGI, GEM // MERCHANTS (board and card games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
 MINE // SWEEP, WATER // SORT, PIC // ROSS (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
 games). A registry entry with `component: null` shows as a "coming soon" card; none is left at the moment.
 
 **The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
-- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess, Shogi DONE. TODO: Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
+- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess, Shogi, Splendor (as Gem Merchants) DONE. TODO: Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
   Lego Minotaurus (reskin), Dungeon Mayhem (deferred, reskin).
 - Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
   is the engine for these. **The owner wants to press a game and play it, using their own ROM files.** That work moves to
@@ -40,6 +40,13 @@ games). A registry entry with `component: null` shows as a "coming soon" card; n
 (hub card, a played game, no sideways scrolling at 320/390/1280 px), and bump the card counts in `e2e/game.spec.ts` and
 `e2e/retro.spec.ts`. Update README (table and test counts) and this file's status list. Verify: `npm run typecheck`,
 `npm run lint`, `npm test`, `npm run build`, `npx playwright test --trace off`.
+
+**Online play (built, NOT connected)**: GEM // MERCHANTS can be played against computers (no network) or online (2-4 players,
+computers fill empty seats). The owner chose **Cloudflare** for the relay and said to build everything first and connect it
+later: `relay/` holds the Worker, Durable Object, wrangler.toml and README; `src/hub/config.ts` has `RELAY_URL = ''`, so the
+game shows "Online play is not switched on yet". To connect: deploy the Worker, set `RELAY_URL`, set `ALLOWED_ORIGINS` in
+wrangler.toml to the hub's address, redeploy, rebuild. Nothing else in the repo needs to change. `src/net/` is generic: any
+game that is "seed + list of actions" can reuse it by writing an `Adapter`.
 
 **Known limits**: sound has never been heard by a person and the emulator ignores the hub's mute button; touch controls
 are only tested in emulated phone sizes; Quoridor's AI is modest; no game has been tried on a real phone.
@@ -146,6 +153,19 @@ Pass `--trace off` to Playwright unless debugging.
 - **Shogi UI**: tiles are SVG (pentagon plus kanji text, red when promoted); the board is turned half round (rows and columns
   reversed) when gote is at the bottom. `?sfen=` in the hub URL starts from a given position, which the e2e tests use for
   mates and drop rules. Optional promotion asks (Promote / Don't promote); forced promotion is applied silently.
+- **Online = lockstep over a dumb relay.** The relay (`net/roomCore.ts`) only orders actions and stamps each with its sender's
+  seat; every device applies them through the engine and ignores illegal or out-of-turn ones, identically. So the relay has no
+  game rules to maintain, and a cheating client can only change its own screen. The cost is that every device knows the deck.
+- **Solo play uses the same code as online**: `MemoryRelay` + `OnlineSession` with one human and computer seats, so there is
+  one path to get right. Computers are played by the host's device (`driveBots`); if the host leaves the next seat takes over.
+- Untrusted input: the relay parses and size-limits every message (`protocol.ts`), and the game adapter validates every
+  action's fields (`gem-merchants/online.ts`) because the engine's key function would throw on malformed ones.
+- `?relay=` in the page address is honoured only for localhost (development and tests); `?fast=1` makes computers play at once.
+- Room codes avoid 0/O/1/I (`ROOM_CODE`): test codes must too, or the relay refuses the address.
+- A refresh must not lose the table: the room code is put in the address with `history.replaceState` (no navigation) and the
+  token lives in `sessionStorage`, so the tab rejoins its seat on load.
+- react-hooks v7 forbids setState in an effect; derive state instead (selection is stamped with the turn it belongs to), and
+  only suppress the rule, with a comment, for a genuine one-off like the auto-rejoin.
 - Vitest hides `console.log` unless run with `--reporter=verbose`.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 

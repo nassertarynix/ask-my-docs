@@ -49,3 +49,4 @@ Space Grotesk, SIL Open Font License 1.1, via @fontsource.
 | Library | Used for | Licence | Source |
 | --- | --- | --- | --- |
 | chess.js 1.4.0 | The rules of chess in CHESS (move generation, check, draws). The computer's search also calls three of its internal methods for speed; the version is pinned in `package-lock.json`. | BSD-2-Clause | https://github.com/jhlywa/chess.js |
+| ws, tsx (dev only) | The local copy of the room relay for development and browser tests; not part of the built site | MIT | https://github.com/websockets/ws, https://github.com/privatenumber/tsx |

@@ -210,3 +210,18 @@ What the hub does for a game, so the game does not have to:
 
 Recommended, as CRATER // LAB does: keep the rules in a headless `engine/` folder with tests, seed all randomness, and
 let the UI only read state and send inputs.
+
+## Online rooms (`src/net/`, `relay/`)
+
+Games whose state is "a seed plus a list of actions" (GEM // MERCHANTS) can be played online with no game logic on a server.
+
+- `protocol.ts`: the messages, and parsing/size limits for everything that arrives from the network.
+- `roomCore.ts`: one room (seats, host, ordered action log, reconnect tokens, host hand-over). No platform code.
+- `transport.ts`: a `Connect` function gives a `Transport`: `webSocketConnect` (reconnects by itself) or `MemoryRelay`
+  (rooms in the same page: the tests, and solo play against computers use it).
+- `session.ts`: `OnlineSession`, one player's side. It sends actions to the relay and applies them when the relay sends them
+  back, in the relay's order, through a game `Adapter` (start, apply, bot, parse, describe). The host's device plays computer seats.
+- `relay/`: the Cloudflare Worker and Durable Object around `RoomCore`, and a Node copy for development and tests.
+
+To put another game online, write its `Adapter` (see `games/gem-merchants/online.ts`) and a lobby/table screen.
+

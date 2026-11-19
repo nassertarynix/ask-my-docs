@@ -37,7 +37,7 @@ that reaches zero loses.
 
 ## The small games
 
-Eight games for one or two players, each against a computer opponent (three levels) or a friend on the same device, and
+Nine games for one to four players, each against a computer opponent (three levels) or a friend on the same device, and
 four single-player puzzles. The rules live in plain, tested TypeScript; the screens are thin.
 
 | Game | What it is | The interesting part |
@@ -49,9 +49,10 @@ four single-player puzzles. The rules live in plain, tested TypeScript; the scre
 | **BATTLE // SHIP** | Hide a five-ship fleet and hunt the other one | Two-player mode uses the privacy curtain twice over: each fleet is placed behind one, and every turn starts behind one, with the other player's board not in the page at all. The hard computer works out, for every square, how many ways the surviving ships could lie through it |
 | **CHESS** | Full chess against the computer (three levels, either colour) or a friend on one screen | All the rules come from the chess.js library (castling, en passant, promotion, check, checkmate, stalemate, repetition, the fifty-move rule); the computer is an alpha-beta search with a capture search at the leaves and piece-square tables, and its levels differ only in depth and a little deliberate looseness, never in cheating. Legal squares are shown when you pick up a piece; pieces are hand-drawn SVG |
 | **SHOGI** | Japanese chess against the computer (three levels, either side) or a friend on one screen, with kanji or letter tiles | The full rules written from scratch and proved with a move-count check (30, 900, 25 470 and 719 731 positions at one to four moves, the published figures): drops, optional and forced promotion, no two pawns on a file, no pawn drop that mates, perpetual check and four-fold repetition. The computer is an alpha-beta search that also reasons about pieces in hand; tap a piece to see its squares, tap a captured piece to see where it may drop |
+| **GEM // MERCHANTS** | Collect gems, buy stalls that make later buys cheaper, attract patrons; first to 15 ends the round. 2 to 4 players, against computers or online with friends | An original reskin of the engine-building card genre (original stalls, colours and shapes, so it can be played without telling colours apart). The rules are a pure engine; a game is a seed plus a list of actions, so online play only has to send tiny moves and every device replays the same list. See *Online play* below |
 | **QUOR // IDOR** | Race a pawn across the board and wall your rival in | A wall may never completely cut a pawn off: every placement is checked with a shortest-path search; pawns jump each other |
 
-<img src="docs/mastermind.png" width="190"> <img src="docs/dots-boxes.png" width="190"> <img src="docs/mancala.png" width="190"> <img src="docs/quoridor.png" width="190"> <img src="docs/battleship.png" width="190"> <img src="docs/air-hockey.png" width="150"> <img src="docs/chess.png" width="190"> <img src="docs/shogi.png" width="190">
+<img src="docs/mastermind.png" width="190"> <img src="docs/dots-boxes.png" width="190"> <img src="docs/mancala.png" width="190"> <img src="docs/quoridor.png" width="190"> <img src="docs/battleship.png" width="190"> <img src="docs/air-hockey.png" width="150"> <img src="docs/chess.png" width="190"> <img src="docs/shogi.png" width="190"> <img src="docs/gem-merchants.png" width="190">
 
 | Puzzle | What it is | The interesting part |
 | --- | --- | --- |
@@ -61,6 +62,21 @@ four single-player puzzles. The rules live in plain, tested TypeScript; the scre
 | **WATER // SORT** | Pour coloured layers until every tube is one colour | Levels are made from the level number and checked with a solver, so each can be won and the **hint** is the solver's next move; progress is remembered |
 
 <img src="docs/sudoku.png" width="190"> <img src="docs/minesweeper.png" width="190"> <img src="docs/water-sort.png" width="190"> <img src="docs/picross.png" width="190">
+
+## Online play (GEM // MERCHANTS, not connected yet)
+
+The hub stays a static site. Rooms need a small relay, written for **Cloudflare Workers** (`relay/`, free plan, does not pause when
+idle). It is deliberately dumb: it keeps rooms and seats and an ordered log of actions and forwards each action to everyone.
+It never looks at a game's rules. Every device replays the same log through the same engine, so devices agree, and an
+illegal or out-of-turn action changes nothing for anyone.
+
+- A room has a five-letter code and an invite link; up to four seats, empty seats are computers played by the host's device.
+- A refreshed or sleeping tab rejoins its seat (the browser keeps a token) and replays the log; if the host leaves, the next
+  player's device plays the computers.
+- Everything from the network is size-checked and parsed before use; names are cleaned; actions are checked field by field.
+- The Worker is a thin wrapper around `src/net/roomCore.ts`, which is unit-tested and also drives a local development relay
+  (`npm run relay:dev`) that the browser tests use to play two real tabs against each other.
+- **To connect it:** deploy the Worker (`relay/README.md`, three commands) and set `RELAY_URL` in `src/hub/config.ts`.
 
 ## RETRO // DECK
 
@@ -95,8 +111,8 @@ npm run dev          # http://localhost:5173
 ```
 
 ```bash
-npm test             # 489 unit tests (Vitest): the artillery engine and AI, the board games and their AIs, storage, the ROM shelf
-npm run e2e          # 276 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
+npm test             # 585 unit tests (Vitest): the artillery engine and AI, the board games and their AIs, storage, the ROM shelf
+npm run e2e          # 320 browser tests (Playwright), at phone and desktop sizes; they really boot the emulators
 npm run typecheck && npm run lint
 npm run build        # static files in dist/
 ```
@@ -135,7 +151,11 @@ computers, and "the computer never makes an illegal move"):
 
 ## Honest limitations
 
-- Ten original games and the emulator deck so far.
+- Eleven original games and the emulator deck so far.
+- Online play is built and tested but **not connected**: the room relay (`relay/`, a Cloudflare Worker) has not been deployed, so
+  `RELAY_URL` is empty and the game says online play is not switched on. Solo play against computers needs no relay.
+- Online games are between friends: every device holds the whole game (so a determined player could read the deck order in
+  the browser's developer tools). Making that cheat-proof would need the host to deal each player only their own view.
 - Shogi's computer knows no openings or castle shapes, so it is tactically sound but not a strong shogi program; there is no
   "impasse" (both kings in the enemy camp) rule, only a 512-move limit that ends a game as a draw.
 - The board-game AIs are search-based and honest about it: Dots and Boxes (hard) and Mancala (hard) are strong, Quoridor's

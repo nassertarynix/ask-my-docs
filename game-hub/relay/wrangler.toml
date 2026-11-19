@@ -1,0 +1,17 @@
+# Cloudflare Worker for the online rooms. Deploy with:  cd relay && npx wrangler deploy   (see README.md)
+name = "paper-arcade-relay"
+main = "src/worker.ts"
+compatibility_date = "2025-01-01"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+# SQLite-backed Durable Objects are the kind the free plan allows.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
+
+[vars]
+# Comma-separated origins allowed to connect, e.g. "https://yourname.github.io". Empty allows any origin.
+ALLOWED_ORIGINS = ""

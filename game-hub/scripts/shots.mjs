@@ -159,6 +159,26 @@ for (const [from, to] of [['7g', '7f'], ['3c', '3d'], ['8h', '2b'], ['3a', '2b']
 await page.locator('[data-hand="B"][data-owner="0"]').click();
 await page.screenshot({ path: `${out}/shogi.png` });
 
+await page.goto(`${base}#/play/gem-merchants?fast=1`);
+await page.reload();
+await page.getByRole('radio', { name: /Three at the table/ }).check();
+await page.getByRole('radio', { name: /Normal/ }).check();
+await page.locator('[data-action="start"]').click();
+for (let i = 0; i < 3; i++) {
+  await page.locator('button[data-supply]:not([disabled])').nth(0).click();
+  await page.locator('button[data-supply]:not([disabled])').nth(1).click();
+  await page.locator('button[data-supply]:not([disabled])').nth(2).click();
+  await page.locator('[data-action="take"]').click();
+  await page.waitForFunction(() => document.querySelector('[data-screen="play"]')?.getAttribute('data-turn') === '0' && ['action', 'discard'].includes(document.querySelector('[data-screen="play"]')?.getAttribute('data-phase') ?? ''));
+  if ((await page.locator('[data-screen="play"]').getAttribute('data-phase')) === 'discard') {
+    while ((await page.locator('[data-screen="play"]').getAttribute('data-phase')) === 'discard') await page.locator('.gm-giveback').first().click();
+    await page.waitForFunction(() => document.querySelector('[data-screen="play"]')?.getAttribute('data-turn') === '0' && document.querySelector('[data-screen="play"]')?.getAttribute('data-phase') === 'action');
+  }
+}
+await page.locator('.gm-board [data-card]').nth(5).click();
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.screenshot({ path: `${out}/gem-merchants.png`, fullPage: true });
+
 await page.goto(`${base}#/play/water-sort`);
 await page.evaluate(() => localStorage.setItem('paper-arcade:game:water-sort', JSON.stringify({ level: 7 })));
 await page.reload();
