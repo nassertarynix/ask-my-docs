@@ -28,10 +28,28 @@ describe('joining a room', () => {
     expect(t1).not.toBe(t2);
   });
 
-  it('holds four players and turns a fifth away', () => {
+  it('holds as many players as the creator asked for, and turns the next one away', () => {
     const core = room();
-    for (const c of ['a', 'b', 'c', 'd']) joined(core, c, c.toUpperCase());
+    core.handle('a', { t: 'join', name: 'A', max: 4 });
+    for (const c of ['b', 'c', 'd']) joined(core, c, c.toUpperCase());
     expect(errorOf(joined(core, 'e', 'Eve'))?.code).toBe('full');
+  });
+
+  it('lets a room grow to ten, and takes the size only from the creator', () => {
+    const core = room();
+    joined(core, 'p0', 'P0'); // no size given: the most there can be
+    for (let i = 1; i < 10; i++) {
+      core.handle(`p${i}`, { t: 'join', name: `P${i}`, max: 2 }); // a later joiner cannot shrink the room
+    }
+    expect(errorOf(joined(core, 'x', 'Eleven'))?.code).toBe('full');
+    expect(errorOf(core.handle('p0', { t: 'start', seats: Array(10).fill('human'), data: null }))).toBeUndefined();
+  });
+
+  it('never makes a room smaller than two or larger than ten', () => {
+    const tiny = room();
+    tiny.handle('a', { t: 'join', name: 'A', max: 2 });
+    joined(tiny, 'b', 'B');
+    expect(errorOf(joined(tiny, 'c', 'C'))?.code).toBe('full');
   });
 
   it('lets a player who leaves the lobby go, and closes the gap in the seats', () => {
@@ -145,6 +163,8 @@ describe('what the relay accepts from the network', () => {
   const ok = (m: ClientMsg) => parseClientMsg(JSON.stringify(m));
   it('accepts well-formed messages', () => {
     expect(ok({ t: 'join', name: 'Ada' })).toEqual({ ok: true, value: { t: 'join', name: 'Ada' } });
+    expect(ok({ t: 'join', name: 'Ada', max: 10, token: 'abc' })).toEqual({ ok: true, value: { t: 'join', name: 'Ada', token: 'abc', max: 10 } });
+    expect(ok({ t: 'start', seats: Array(10).fill('human'), data: null }).ok).toBe(true);
     expect(ok({ t: 'act', action: { type: 'pass' }, seat: 2 }).ok).toBe(true);
     expect(ok({ t: 'start', seats: ['human', 'bot'], data: { seed: 1 } }).ok).toBe(true);
   });
@@ -155,13 +175,16 @@ describe('what the relay accepts from the network', () => {
     ['a join without a name', '{"t":"join","name":"   "}'],
     ['a join with a non-string name', '{"t":"join","name":5}'],
     ['a token that is too long', JSON.stringify({ t: 'join', name: 'A', token: 'x'.repeat(65) })],
-    ['five seats', JSON.stringify({ t: 'start', seats: ['human', 'bot', 'bot', 'bot', 'bot'], data: null })],
+    ['eleven seats', JSON.stringify({ t: 'start', seats: ['human', ...Array(10).fill('bot')], data: null })],
+    ['a room size of one', JSON.stringify({ t: 'join', name: 'A', max: 1 })],
+    ['a room size of eleven', JSON.stringify({ t: 'join', name: 'A', max: 11 })],
+    ['a room size that is not a whole number', JSON.stringify({ t: 'join', name: 'A', max: 3.5 })],
     ['one seat', JSON.stringify({ t: 'start', seats: ['human'], data: null })],
     ['a seat that is not human or bot', JSON.stringify({ t: 'start', seats: ['human', 'cat'], data: null })],
     ['setup data that is too large', JSON.stringify({ t: 'start', seats: ['human', 'bot'], data: 'x'.repeat(2100) })],
     ['an action that is too large', JSON.stringify({ t: 'act', action: 'x'.repeat(1100) })],
     ['a seat that is not a whole number', JSON.stringify({ t: 'act', action: 1, seat: 1.5 })],
-    ['a seat out of range', JSON.stringify({ t: 'act', action: 1, seat: 9 })],
+    ['a seat out of range', JSON.stringify({ t: 'act', action: 1, seat: 10 })],
   ])('refuses %s', (_name, text) => {
     expect(parseClientMsg(text).ok).toBe(false);
   });

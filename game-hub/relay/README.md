@@ -7,7 +7,7 @@ A tiny relay that lets friends play the hub's online games together while the hu
 
 ## What it does (and does not)
 
-- Rooms are named by a five-character code. The first player in is the host; up to four seats.
+- Rooms are named by a five-character code. The first player in is the host, and also sets the room's size (2 to 10, the game decides: Gem Merchants asks for 4, Pit Brawl for 10); later joiners cannot change it.
 - It keeps an ordered log of actions and sends each one to everybody. It never looks at what an action means: every device
   replays the same log through the same game engine, so they agree, and an illegal action changes nothing for anyone.
 - A player who drops out (a phone going to sleep) comes back with a token kept in their browser tab and is sent the log.

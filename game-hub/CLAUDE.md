@@ -9,13 +9,13 @@ pronouns not stated, so avoid them). Keep it honest, tidy and reproducible; READ
 ## Status and handoff (read this first in a new session)
 
 **What exists** (all pushed, CI green): the hub shell; CRATER // LAB (artillery duel, headless engine + AI);
-MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS, SHOGI, GEM // MERCHANTS (board and card games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
+MASTER // MIND, DOTS // BOXES, MAN // CALA, QUOR // IDOR, BATTLE // SHIP, CHESS, SHOGI, GEM // MERCHANTS, PIT // BRAWL (board and card games with computer opponents), AIR // HOCKEY (real-time); SU // DOKU,
 MINE // SWEEP, WATER // SORT, PIC // ROSS (single-player puzzles); RETRO // DECK (WebAssembly emulators with nine free homebrew
 games). A registry entry with `component: null` shows as a "coming soon" card; none is left at the moment.
 
 **The owner's master list** (from their own spec; 34 titles in three tiers). Build status:
-- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess, Shogi, Splendor (as Gem Merchants) DONE. TODO: Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
-  Lego Minotaurus (reskin), Dungeon Mayhem (deferred, reskin).
+- Tier 1, custom logic games: Mastermind, Mancala, Quoridor, Dots and Boxes, Sudoku, Water Sort, Picross, Battleship, Air Hockey, Chess, Shogi, Splendor (as Gem Merchants), Dungeon Mayhem (as Pit Brawl, up to 10 players) DONE. TODO: Splendor (build it as a reskin, "Gem Merchants"), Hedbanz/Heads Up,
+  Lego Minotaurus (reskin).
 - Tier 2, platformers via emulator (Mario, Sonic, DKC, Kirby, Prince of Persia, Disney 16-bit ...): the RETRO // DECK
   is the engine for these. **The owner wants to press a game and play it, using their own ROM files.** That work moves to
   a separate PRIVATE repository (the owner is creating it), because commercial ROMs must not be in a public repo.
@@ -41,7 +41,7 @@ games). A registry entry with `component: null` shows as a "coming soon" card; n
 `e2e/retro.spec.ts`. Update README (table and test counts) and this file's status list. Verify: `npm run typecheck`,
 `npm run lint`, `npm test`, `npm run build`, `npx playwright test --trace off`.
 
-**Online play (built, NOT connected)**: GEM // MERCHANTS can be played against computers (no network) or online (2-4 players,
+**Online play (built, NOT connected)**: GEM // MERCHANTS (up to 4) and PIT // BRAWL (up to 10) can be played against computers (no network) or online (2-4 players,
 computers fill empty seats). The owner chose **Cloudflare** for the relay and said to build everything first and connect it
 later: `relay/` holds the Worker, Durable Object, wrangler.toml and README; `src/hub/config.ts` has `RELAY_URL = ''`, so the
 game shows "Online play is not switched on yet". To connect: deploy the Worker, set `RELAY_URL`, set `ALLOWED_ORIGINS` in
@@ -166,6 +166,16 @@ Pass `--trace off` to Playwright unless debugging.
   token lives in `sessionStorage`, so the tab rejoins its seat on load.
 - react-hooks v7 forbids setState in an effect; derive state instead (selection is stamped with the turn it belongs to), and
   only suppress the rule, with a comment, for a genuine one-off like the auto-rejoin.
+- **Pit Brawl was rebalanced by playing it.** Version one had permanent shields and fixed 10 health: bot games hit the
+  3000-turn cap (two turtles stacking +250 shield) and at ten players each player got ~3 turns. Fixes: shields last until the
+  owner's next turn, shield and hand are capped at 10, health is 10 up to four players then +2 per extra player (22 at ten).
+  Bot games now take ~8-11 turns per player at every size. Measure game length with bots before trusting a rules tweak.
+- **A bot's scoring term must be clamped.** "Prefer weak targets" as `(10 - hp - shield) * 0.1` went hugely negative against a
+  big shield and made the bots stop attacking. Clamp anything that can run away.
+- **The relay's seat limit is per room, not global**: the creator's `join` carries `max` (2-10, only honoured from the first
+  joiner); a game's adapter and lobby enforce the rest. Gem Merchants sends 4, Pit Brawl 10.
+- Do not put infinite CSS animation on something a test (or a shaky thumb) must click: Playwright waits for it to stop moving.
+  Use a static highlight.
 - Vitest hides `console.log` unless run with `--reporter=verbose`.
 - A full unit run takes about 12 s because the AI tests really solve shots; keep new AI tests few and targeted.
 

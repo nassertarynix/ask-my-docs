@@ -75,7 +75,7 @@ export default function GameView(_props: GameProps) {
     };
     const memory = new MemoryRelay();
     setLastSolo(true);
-    attach(new OnlineSession({ adapter: gemAdapter, connect: memory.connect('SOLO1'), code: 'SOLO1', name: myName, tokens: noTokens, autoStart: setup, botDelayMs: fast ? 40 : undefined }));
+    attach(new OnlineSession({ adapter: gemAdapter, connect: memory.connect('SOLO1'), code: 'SOLO1', name: myName, tokens: noTokens, autoStart: setup, maxSeats: 4, botDelayMs: fast ? 40 : undefined }));
   };
 
   const goOnline = (code: string) => {
@@ -83,7 +83,7 @@ export default function GameView(_props: GameProps) {
     remember();
     setLastSolo(false);
     window.history.replaceState(null, '', roomHash(code)); // no navigation: it only lets a refresh find the room again
-    attach(new OnlineSession({ adapter: gemAdapter, connect: webSocketConnect(`${relay}/room/${code}`), code, name: myName, botDelayMs: fast ? 60 : undefined }));
+    attach(new OnlineSession({ adapter: gemAdapter, connect: webSocketConnect(`${relay}/room/${code}`), code, name: myName, maxSeats: 4, botDelayMs: fast ? 60 : undefined }));
   };
 
   const leave = () => {

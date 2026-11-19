@@ -216,7 +216,7 @@ let the UI only read state and send inputs.
 Games whose state is "a seed plus a list of actions" (GEM // MERCHANTS) can be played online with no game logic on a server.
 
 - `protocol.ts`: the messages, and parsing/size limits for everything that arrives from the network.
-- `roomCore.ts`: one room (seats, host, ordered action log, reconnect tokens, host hand-over). No platform code.
+- `roomCore.ts`: one room (seats, host, ordered action log, reconnect tokens, host hand-over). No platform code. A room holds 2 to 10 seats; the creator's join message says how many the game wants.
 - `transport.ts`: a `Connect` function gives a `Transport`: `webSocketConnect` (reconnects by itself) or `MemoryRelay`
   (rooms in the same page: the tests, and solo play against computers use it).
 - `session.ts`: `OnlineSession`, one player's side. It sends actions to the relay and applies them when the relay sends them

@@ -16,7 +16,7 @@ const memTokens = (): TokenStore => {
   return { get: (c) => m.get(c) ?? null, set: (c, t) => void m.set(c, t) };
 };
 const make = (relay: MemoryRelay, code: string, name: string, extra: { botDelayMs?: number; autoStart?: GemSetup } = {}) =>
-  new OnlineSession({ adapter: gemAdapter, connect: relay.connect(code), code, name, tokens: memTokens(), botDelayMs: 0, ...extra });
+  new OnlineSession({ adapter: gemAdapter, connect: relay.connect(code), code, name, tokens: memTokens(), botDelayMs: 0, maxSeats: 4, ...extra });
 const setup = (kinds: ('human' | 'bot')[], seed = 3): GemSetup => ({ players: kinds.map((kind, i) => ({ name: kind === 'bot' ? `Bot ${i}` : `P${i}`, kind, ...(kind === 'bot' ? { level: 'normal' as const } : {}) })), seed });
 
 type Session = ReturnType<typeof make>;

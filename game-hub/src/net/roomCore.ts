@@ -32,6 +32,8 @@ export class RoomCore {
   private seats: SeatKind[] = [];
   private data: Json = null;
   private log: LogEntry[] = [];
+  /** How many seats this room has: set by whoever creates it (the first to join), at most MAX_SEATS. */
+  private maxSeats = MAX_SEATS;
 
   constructor(private readonly newToken: () => string) {}
 
@@ -63,14 +65,14 @@ export class RoomCore {
 
   handle(conn: string, msg: ClientMsg): Out[] {
     if (msg.t === 'ping') return [{ to: conn, msg: { t: 'pong' } }];
-    if (msg.t === 'join') return this.join(conn, msg.name, msg.token);
+    if (msg.t === 'join') return this.join(conn, msg.name, msg.token, msg.max);
     const me = this.memberOf(conn);
     if (!me) return this.err(conn, 'forbidden', 'Join the room first.');
     if (msg.t === 'start') return this.start(me, conn, msg.seats, msg.data);
     return this.act(me, conn, msg.action, msg.seat);
   }
 
-  private join(conn: string, name: string, token: string | undefined): Out[] {
+  private join(conn: string, name: string, token: string | undefined, max: number | undefined): Out[] {
     const back = token ? this.members.find((m) => m.token === token) : undefined;
     let me: Member;
     if (back) {
@@ -78,7 +80,8 @@ export class RoomCore {
       me = back;
     } else {
       if (this.started) return this.err(conn, 'started', 'That game has already started.');
-      if (this.members.length >= MAX_SEATS) return this.err(conn, 'full', 'That room is full.');
+      if (this.members.length >= this.maxSeats) return this.err(conn, 'full', 'That room is full.');
+      if (this.members.length === 0 && max !== undefined) this.maxSeats = Math.min(MAX_SEATS, Math.max(2, max)); // only the creator decides the size
       me = { seat: this.members.length, name, token: this.newToken(), conn };
       this.members.push(me);
     }
@@ -94,7 +97,7 @@ export class RoomCore {
     if (this.started) return this.err(conn, 'started', 'The game has already started.');
     const humans = seats.filter((k) => k === 'human').length;
     const humansFirst = seats.every((k, i) => (i < humans ? k === 'human' : k === 'bot'));
-    if (seats.length < 2 || seats.length > MAX_SEATS || humans !== this.members.length || !humansFirst) return this.err(conn, 'bad', 'The seats do not match the players in the room.');
+    if (seats.length < 2 || seats.length > this.maxSeats || humans !== this.members.length || !humansFirst) return this.err(conn, 'bad', 'The seats do not match the players in the room.');
     this.started = true;
     this.seats = seats;
     this.data = data;

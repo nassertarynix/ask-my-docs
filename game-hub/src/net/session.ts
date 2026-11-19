@@ -75,6 +75,8 @@ export interface SessionOptions<S, A, D> {
   code: string;
   name: string;
   tokens?: TokenStore;
+  /** How many seats the game allows. Whoever creates the room sets it for everyone (2 to 10). */
+  maxSeats?: number;
   /** How long a computer seat "thinks" before it plays. */
   botDelayMs?: number;
   /** When set, the first player to arrive starts the game with this setup at once (solo play against computers). */
@@ -117,7 +119,10 @@ export class OnlineSession<S, A, D> {
   private onOpen(): void {
     this.set({ online: true });
     const token = (this.opts.tokens ?? sessionTokens).get(this.opts.code);
-    this.send(token ? { t: 'join', name: this.opts.name, token } : { t: 'join', name: this.opts.name });
+    const join: Extract<Parameters<Transport['send']>[0], { t: 'join' }> = { t: 'join', name: this.opts.name };
+    if (token) join.token = token;
+    if (this.opts.maxSeats !== undefined) join.max = this.opts.maxSeats;
+    this.send(join);
   }
 
   private onClose(willRetry: boolean): void {

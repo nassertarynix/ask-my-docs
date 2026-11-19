@@ -5,7 +5,8 @@
  */
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
-export const MAX_SEATS = 4;
+/** The most seats any room can have. Each game says how many it wants (the room's creator sends it when joining). */
+export const MAX_SEATS = 10;
 export const MAX_MESSAGE_CHARS = 8192;
 export const MAX_NAME_CHARS = 20;
 export const MAX_DATA_CHARS = 2000;
@@ -28,7 +29,7 @@ export interface LogEntry {
 export type ErrorCode = 'full' | 'started' | 'bad' | 'forbidden' | 'log-full' | 'not-started';
 
 export type ClientMsg =
-  | { t: 'join'; name: string; token?: string }
+  | { t: 'join'; name: string; token?: string; max?: number }
   | { t: 'start'; seats: SeatKind[]; data: Json }
   | { t: 'act'; action: Json; seat?: number }
   | { t: 'ping' };
@@ -75,7 +76,11 @@ export function parseClientMsg(text: unknown): Parsed<ClientMsg> {
       const name = cleanName(raw.name);
       if (!name) return { ok: false, reason: 'a name is needed' };
       if (raw.token !== undefined && (typeof raw.token !== 'string' || raw.token.length > 64)) return { ok: false, reason: 'bad token' };
-      return { ok: true, value: raw.token === undefined ? { t: 'join', name } : { t: 'join', name, token: raw.token as string } };
+      if (raw.max !== undefined && !(Number.isInteger(raw.max) && (raw.max as number) >= 2 && (raw.max as number) <= MAX_SEATS)) return { ok: false, reason: 'bad room size' };
+      const value: ClientMsg = { t: 'join', name };
+      if (raw.token !== undefined) value.token = raw.token as string;
+      if (raw.max !== undefined) value.max = raw.max as number;
+      return { ok: true, value };
     }
     case 'start': {
       const seats = raw.seats;

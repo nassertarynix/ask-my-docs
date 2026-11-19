@@ -179,6 +179,21 @@ await page.locator('.gm-board [data-card]').nth(5).click();
 await page.evaluate(() => window.scrollTo(0, 0));
 await page.screenshot({ path: `${out}/gem-merchants.png`, fullPage: true });
 
+await page.goto(`${base}#/play/pit-brawl?fast=1&seed=5`);
+await page.reload();
+await page.locator('[data-hero="0"]').click();
+await page.locator('[data-field="opponents"]').evaluate((el) => {
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(el, '7');
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+});
+await page.getByRole('radio', { name: /Normal/ }).check();
+await page.locator('[data-action="start"]').click();
+await page.waitForSelector('[data-screen="play"]');
+// seed 5 deals a hand with Cleaver Chop and the first turn to the player: select it to show the highlighted targets
+await page.locator('.pb-card[data-name="Cleaver Chop"]').click();
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.screenshot({ path: `${out}/pit-brawl.png`, fullPage: true });
+
 await page.goto(`${base}#/play/water-sort`);
 await page.evaluate(() => localStorage.setItem('paper-arcade:game:water-sort', JSON.stringify({ level: 7 })));
 await page.reload();
